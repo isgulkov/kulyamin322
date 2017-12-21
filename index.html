@@ -7,7 +7,7 @@
         div.input_form {
             width: 60%;
             min-width: 800px;
-            margin: 50px auto 0px;
+            margin: 50px auto 0;
 
             padding: 20px;
 
@@ -18,13 +18,40 @@
             width: 100%;
             height: 15em;
         }
+
+        table.results {
+            width: 100%;
+        }
     </style>
 </head>
 <body>
     <div class="input_form">
-        <p>1. Введите код:</p>
+        <p><label for="code">1. Введите код:</label></p>
         <p><textarea id="code"></textarea></p>
-        <input type="button" value="2. Нажмите меня" />
+        <p><input type="button" value="2. Нажмите меня" /></p>
+        <p>3. Результат:</p>
+        <table class="results" border="1">
+            <tr>
+                <td colspan="4">Количество элементарных условий</td>
+                <td>—</td>
+                <td colspan="3" rowspan="2">Ветвления</td>
+                <td rowspan="2">Полный набор комбинаций по MC/DC</td>
+            </tr>
+            <tr>
+                <td rowspan="2">пустая</td>
+                <td colspan="4">Элементарные условия</td>
+            </tr>
+            <tr>
+                <td>у1</td>
+                <td>у2</td>
+                <td>у3</td>
+                <td>у4</td>
+                <td>хуй</td>
+                <td>пизда</td>
+                <td>джигурда</td>
+                <td>малафья</td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>
