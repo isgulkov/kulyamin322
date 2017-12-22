@@ -9,8 +9,81 @@
             crossorigin="anonymous"></script>
 </head>
 <body>
-    <div class="input_form">
-        <h3>Солвер для одного из заданий экзамена по дисциплине «Тестирование»</h3>
+    <h2>Солверы нескольких заданий экзамена по дисциплине «Тестирование»</h2>
+
+    <div class="solver_outer" id="solver_combgr">
+        <h3>Задание, где дана грамматика из одной продукции и надо покрыть че-то там все пары</h3>
+
+        <p>1. Введите правую сторону продукции (после знака <span style="font: 1.1em monospace; background: lightyellow">::=</span>):</p>
+
+        <p>
+            <input title="Продукция" class="wide" id="prod" value="(A)? B (C0|C1|C2) (D)* (E0|E1|E2) F (G0|G1)"/>
+        </p>
+
+        <p><input type="button" class="go" value="2. Нажмите меня" /> <span class="small">(⌘+Enter)</span></p>
+
+        <p class="info error_msg"></p>
+
+        <div class="results_section" style="display: none;">
+            <p>3. Результат:</p>
+
+            <table class="results">
+
+            </table>
+
+            <p>4. Выкрикните на всю аудиторию «ПИ — шарага». Чем громче выкрикните, тем больше ПИ — шарага.</p>
+        </div>
+
+        <script src="js/parse_grammar.js"></script>
+        <script src="js/analyze_grammar.js"></script>
+        <script>
+            var solveAndDisplayCombGr = function() {
+                var $results_section = $('#solver_combgr .results_section');
+                $results_section.hide();
+                $('#solver_combgr tr.generated').remove();
+
+                var $error_msg = $('#solver_combgr .error_msg'); // TODO: ?
+
+                var prod = parseProduction($('#prod').val());
+
+                var setConveringAllPairs = findVariantsThatCoverAllPairs(prod);
+
+                console.log(JSON.stringify(prod));
+                console.log(countTotalPairs(prod));
+
+                setConveringAllPairs.forEach(function(vId, i) {
+                    var newRow = "<tr class=\"generated\"><td class=\"leftmost\">" + (i + 1) + "</td>";
+
+                    var v = getVariantByd(prod, vId);
+
+                    v.forEach(function(subV) {
+                        newRow += "<td>" + subV + "</td>";
+                    });
+
+                    newRow += "</tr>";
+
+                    $('#solver_combgr table.results').append($(newRow));
+                });
+
+                $results_section.show();
+            };
+
+            var submitHotkeyPressedCombGr = function(e) {
+                if((e.ctrlKey || e.metaKey) && e.keyCode === 13) {
+                    solveAndDisplayCombGr();
+                }
+            };
+
+            $('#solver_combgr input.wide').keydown(submitHotkeyPressedCombGr).keyup(submitHotkeyPressedCombGr());
+
+            $('#solver_combgr .go').click(solveAndDisplayCombGr);
+
+            solveAndDisplayCombGr();
+        </script>
+    </div>
+
+    <div class="solver_outer" id="solver_mcdc">
+        <h3>Задание, где дан код функции с несколькими ифами и нужно сделать покрытие тестами по методике Кулямина «MC/DC»</h3>
 
         <p>1. Введите выражения из ифов:</p>
 
@@ -20,14 +93,14 @@
             <input title="Третье выражение" class="wide" id="ex3" value=""/>
         </p>
 
-        <p><input type="button" id="go" value="2. Нажмите меня" /> <span class="small">(⌘+Enter)</span></p>
+        <p><input type="button" class="go" value="2. Нажмите меня" /> <span class="small">(⌘+Enter)</span></p>
 
-        <p class="info" id="error_msg"></p>
+        <p class="info error_msg"></p>
 
-        <div id="results_section"> <!--style="display: none;"-->
+        <div class="results_section"> <!--style="display: none;"-->
             <p>3. Результат:</p>
 
-            <table class="results" id="results">
+            <table class="results">
                 <tr class="heading">
                     <td colspan="4">Количество элементарных условий:</td>
                     <td>—</td>
@@ -67,11 +140,11 @@
                     - сравнение с числом по модулю
          */
 
-        var solve_and_display = function() {
+        var solveAndDisplayMCDC = function() {
             var $results_section = $('#results_section');
             $results_section.hide();
 
-            var $error_msg = $('#error_msg');
+            var $error_msg = $('#solver_mcdc .error_msg');
 
             var parsedExpressions = ['#ex1', '#ex2', '#ex3'].map(function(inputSelector) {
                 var $input = $(inputSelector);
@@ -122,7 +195,7 @@
                 return;
             }
 
-            $('table#results tr.generated').remove();
+            $('#solver_mcdc tr.generated').remove();
 
             var $expression_display_cells = $('td.expression_display');
 
@@ -160,23 +233,23 @@
 
                 newRow += "<td></td><td></td></tr>";
 
-                $(newRow).appendTo($('table#results'));
+                $(newRow).appendTo($('#solver_mcdc table.results'));
             }
 
             $results_section.show();
         };
 
-        var submitHotkeyPressed = function(e) {
+        var submitHotkeyPressedMCDC = function(e) {
             if((e.ctrlKey || e.metaKey) && e.keyCode === 13) {
-                solve_and_display();
+                solveAndDisplayMCDC();
             }
         };
 
-        $('input.wide').keydown(submitHotkeyPressed).keyup(submitHotkeyPressed);
+        $('input.wide').keydown(submitHotkeyPressedMCDC).keyup(submitHotkeyPressedMCDC);
 
-        $('#go').click(solve_and_display);
+        $('#solver_mcdc .go').click(solveAndDisplayMCDC);
 
-        solve_and_display();
+        solveAndDisplayMCDC();
     </script>
 </body>
 </html>

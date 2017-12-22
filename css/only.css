@@ -1,5 +1,12 @@
 
-div.input_form {
+body > h2 {
+    width: 100%;
+    margin: 60px 0 0;
+
+    text-align: center;
+}
+
+div.solver_outer {
     width: 60%;
     min-width: 550px;
     margin: 50px auto 0;
@@ -39,7 +46,7 @@ table.results td {
 table.results td.leftmost {
     font-weight: bold;
 
-    border: 1px solid #777777 !important;
+    border: 1px solid dimgray;
 }
 
 table.results td.equally_narrow {
