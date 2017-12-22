@@ -2,7 +2,7 @@ int method(int x, int y, int z)
 {
     int a = 0;
 
-    if(y > 4 || y <= 4 && x > 3) {
+    if(y > 4 || y <= 4 && x > 1) {
         a += 2;
     }
 

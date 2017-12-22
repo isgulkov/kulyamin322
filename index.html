@@ -40,21 +40,21 @@
 </head>
 <body>
     <div class="input_form">
-        <h3>Солвер для одного из заданий экзамена по дисциплине «Тестирование»</h3></h4>
+        <h3>Солвер для одного из заданий экзамена по дисциплине «Тестирование»</h3>
 
-        <p>1. Введите выражения из ифов:</label></p>
+        <p>1. Введите выражения из ифов:</p>
 
         <p>
-            <input class="expression_code" id="ex1" value="x > 3 && z < 5 || x <= 3 && y > 0"/>
-            <input class="expression_code" id="ex2" value="x <= 3 && y < 0 || z >= 5"/>
+            <input title="Первое выражение" class="expression_code" id="ex1" value="x > 3 && z < 5 || x <= 3 && y > 0"/>
+            <input title="Второе выражение" class="expression_code" id="ex2" value="x <= 3 && y < 0 || z >= 5"/>
         </p>
 
         <p><input type="button" id="go" value="2. Нажмите меня" /></p>
 
+        <p class="info" id="error_msg"></p>
+
         <div id="results_section"> <!--style="display: none;"-->
             <p>3. Результат:</p>
-
-            <p class="info" id="error_msg"></p>
 
             <table class="results" border="1">
                 <tr class="heading">
@@ -95,18 +95,32 @@
     </div>
 
     <script src="js/parse.js"></script>
+    <script src="js/analyze.js"></script>
     <script>
         /*
             Предположительно не будет:
                     - вложенных ифов
                     - изменения аргументов в теле функции
                     - любых типов кроме инта
+
+            Вполне может попасться:
+                    - сравнение с числом по модулю
          */
         var solve_and_display = function() {
             var one = parseExpression($('#ex1').val());
             var another = parseExpression($('#ex2').val());
 
-            $('#error_msg').html("<p>" + JSON.stringify(one) + "<p>" + JSON.stringify(another));
+            var simpleExpressions = extractSimpleExpressions(one, another);
+
+            $('#error_msg').html("")
+
+            if(simpleExpressions.length !== 4) {
+                $('#error_msg').text("Простейших выражений получилось " + simpleExpressions.length
+                    + ", а по числу столбцов в таблице должно быть только четыре. Либо условие"
+                    + " было введено неправильно, либо я хз как такое решать");
+            }
+
+            $('#error_msg').html($('#error_msg').html() + "<p>" + simpleExpressions.map(printSimpleExpr).join("<br/>"));
 
             $('#results_section').show();
         };

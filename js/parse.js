@@ -176,8 +176,6 @@ var parseExpression = function() {
 
                 var tok = this.tokens[this.i++];
 
-                console.log(tok);
-
                 if(tok.type === 'INTEGER') {
                     return {
                         kind: 'atomicInt',
