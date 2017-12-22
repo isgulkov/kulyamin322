@@ -111,6 +111,9 @@
          */
 
         var solve_and_display = function() {
+            var $results_section = $('#results_section');
+            $results_section.hide();
+
             var one = parseExpression($('#ex1').val());
             var another = parseExpression($('#ex2').val());
 
@@ -124,10 +127,9 @@
                 $error_msg.text("Простейших выражений получилось " + result.allSimpleExprs.length
                     + ", а по числу столбцов в таблице должно быть только четыре. Либо условие"
                     + " было введено неправильно, либо я хз как такое решать");
-            }
 
-            $error_msg.html($error_msg.html() + "<p>" + result.allSimpleExprs.map(printExpr).join("<br/>"));
-            $error_msg.html($error_msg.html() + "<p>" + result.bigExprs.map(printExpr).join("<br/>"));
+                return;
+            }
 
             $('table#results tr.generated').remove();
 
@@ -136,6 +138,9 @@
             result.allSimpleExprs.forEach(function(expr, i) {
                 $expression_display_cells.eq(i).html(printExpr(expr));
             });
+
+            var evalValues = [];
+            var evalResults = [];
 
             for(var i = 0; i < 16; i++) {
                 var values = {};
@@ -152,8 +157,14 @@
                     iTmp <<= 1;
                 });
 
+                evalValues.push(values);
+
                 result.bigExprs.forEach(function(bigExpr) {
-                    newRow += "<td>" + (evaluateExpr(bigExpr, values) ? 1 : 0) + "</td>";
+                    var evalResult = evaluateExpr(bigExpr, values);
+
+                    newRow += "<td>" + (evalResult ? 1 : 0) + "</td>";
+
+                    evalResults.push(evalResult);
                 });
 
                 newRow += "<td></td><td></td></tr>";
@@ -161,7 +172,7 @@
                 $(newRow).appendTo($('table#results'));
             }
 
-            $('#results_section').show();
+            $results_section.show();
         };
 
         $('#go').click(solve_and_display);
