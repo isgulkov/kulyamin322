@@ -72,6 +72,10 @@
             };
 
             var submitHotkeyPressedCombGr = function(e) {
+                if(e === undefined) {
+                    return;
+                }
+
                 if((e.ctrlKey || e.metaKey) && e.keyCode === 13) {
                     solveAndDisplayCombGr();
                 }
@@ -245,6 +249,10 @@
         };
 
         var submitHotkeyPressedMCDC = function(e) {
+            if(e === undefined) {
+                return;
+            }
+
             if((e.ctrlKey || e.metaKey) && e.keyCode === 13) {
                 solveAndDisplayMCDC();
             }
