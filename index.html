@@ -37,21 +37,24 @@
         <script src="js/parse_grammar.js"></script>
         <script src="js/analyze_grammar.js"></script>
         <script>
-            var solveAndDisplayCombGr = function() {
-                var $results_section = $('#solver_combgr .results_section');
-                $results_section.hide();
-                $('#solver_combgr tr.generated').remove();
+            var $solverCombGr = $('#solver_combgr');
 
-                var $error_msg = $('#solver_combgr .error_msg'); // TODO: ?
+            var solveAndDisplayCombGr = function() {
+                var $results_section = $solverCombGr.find('.results_section');
+                $results_section.hide();
+
+                $solverCombGr.find('tr.generated').remove();
+
+//                var $error_msg = $solverCombGr.find('.error_msg');
 
                 var prod = parseProduction($('#prod').val());
 
-                var setConveringAllPairs = findVariantsThatCoverAllPairs(prod);
+                var setCoveringAllPairs = findVariantsThatCoverAllPairs(prod);
 
                 console.log(JSON.stringify(prod));
                 console.log(countTotalPairs(prod));
 
-                setConveringAllPairs.forEach(function(vId, i) {
+                setCoveringAllPairs.forEach(function(vId, i) {
                     var newRow = "<tr class=\"generated\"><td class=\"leftmost\">" + (i + 1) + "</td>";
 
                     var v = getVariantByd(prod, vId);
@@ -62,7 +65,7 @@
 
                     newRow += "</tr>";
 
-                    $('#solver_combgr table.results').append($(newRow));
+                    $solverCombGr.find('table.results').append($(newRow));
                 });
 
                 $results_section.show();
@@ -74,16 +77,16 @@
                 }
             };
 
-            $('#solver_combgr input.wide').keydown(submitHotkeyPressedCombGr).keyup(submitHotkeyPressedCombGr());
+            $solverCombGr.find('input.wide').keydown(submitHotkeyPressedCombGr).keyup(submitHotkeyPressedCombGr());
 
-            $('#solver_combgr .go').click(solveAndDisplayCombGr);
+            $solverCombGr.find('.go').click(solveAndDisplayCombGr);
 
             solveAndDisplayCombGr();
         </script>
     </div>
 
     <div class="solver_outer" id="solver_mcdc">
-        <h3>Задание, где дан код функции с несколькими ифами и нужно сделать покрытие тестами по методике Кулямина «MC/DC»</h3>
+        <h3>Задание, где дан код функции с несколькими ифами и нужно составить тесты</h3>
 
         <p>1. Введите выражения из ифов:</p>
 
@@ -140,11 +143,13 @@
                     - сравнение с числом по модулю
          */
 
+        var $solverMCDC = $('#solver_mcdc');
+
         var solveAndDisplayMCDC = function() {
             var $results_section = $('#results_section');
             $results_section.hide();
 
-            var $error_msg = $('#solver_mcdc .error_msg');
+            var $error_msg = $solverMCDC.find('.error_msg');
 
             var parsedExpressions = ['#ex1', '#ex2', '#ex3'].map(function(inputSelector) {
                 var $input = $(inputSelector);
@@ -195,7 +200,7 @@
                 return;
             }
 
-            $('#solver_mcdc tr.generated').remove();
+            $solverMCDC.find('tr.generated').remove();
 
             var $expression_display_cells = $('td.expression_display');
 
@@ -233,7 +238,7 @@
 
                 newRow += "<td></td><td></td></tr>";
 
-                $(newRow).appendTo($('#solver_mcdc table.results'));
+                $(newRow).appendTo($solverMCDC.find('table.results'));
             }
 
             $results_section.show();
@@ -245,9 +250,9 @@
             }
         };
 
-        $('input.wide').keydown(submitHotkeyPressedMCDC).keyup(submitHotkeyPressedMCDC);
+        $solverMCDC.find('input.wide').keydown(submitHotkeyPressedMCDC).keyup(submitHotkeyPressedMCDC);
 
-        $('#solver_mcdc .go').click(solveAndDisplayMCDC);
+        $solverMCDC.find('.go').click(solveAndDisplayMCDC);
 
         solveAndDisplayMCDC();
     </script>
