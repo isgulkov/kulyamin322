@@ -55,13 +55,24 @@ var parseProduction = function() {
                 }
             }
             else if('*+?'.indexOf(s[i]) !== -1) {
-                var lastItem = prod.pop();
+                if(currentTerm !== "") {
+                    var newSubProd = {};
 
-                var modifiedItem = {};
+                    newSubProd[s[i]] = currentTerm;
 
-                modifiedItem[s[i]] = lastItem;
+                    prod.push(newSubProd);
 
-                prod.push(modifiedItem);
+                    currentTerm = "";
+                }
+                else {
+                    var lastItem = prod.pop();
+
+                    var modifiedItem = {};
+
+                    modifiedItem[s[i]] = lastItem;
+
+                    prod.push(modifiedItem);
+                }
             }
         }
 
