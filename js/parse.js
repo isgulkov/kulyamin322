@@ -1,22 +1,17 @@
 
-var parseC = function() {
+var parseExpression = function() {
     var tokenTypes = {
         WS: /^[ \t\r\n]+/,
         ID: /^[a-zA-Z]+/,
         INTEGER: /^-?[0-9]+/,
         OPEN_PAREN: /^\(/,
         CLOSE_PAREN: /^\)/,
-        OPEN_BRACE: /^{/,
-        CLOSE_BRACE: /^}/,
-        COMMA: /^,/,
         COMPARE_OP: /^([><]=?|==)/,
-        ASSIGN_OP: /^(=|\+=|-=|\*=|\/=)/,
         AND_OP: /^&&/,
         OR_OP: /^\|\|/,
-        SEMICOLON: /^;/
     };
 
-    var tokenizeC = function(s) {
+    var tokenizeExpression = function(s) {
         var tokens = [];
 
         var foundToken;
@@ -31,7 +26,7 @@ var parseC = function() {
                     if(type !== 'WS') {
                         tokens.push({
                             type: type,
-                            s: match[0]
+                            text: match[0]
                         });
                     }
 
@@ -50,209 +45,14 @@ var parseC = function() {
 
     return function(s) {
         var parser = {
-            tokens: tokenizeC(s),
+            tokens: tokenizeExpression(s),
             i: 0,
 
             error: "",
 
-            FUNCTION: function() {
-                // TODO: error messages
-
-                var iOld = this.i;
-
-                if(!this.JUST_TOKEN('ID')) {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                if(!this.JUST_TOKEN('ID')) {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                if(!this.JUST_TOKEN('OPEN_PAREN')) {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                var params = this.PARAMS();
-
-                if(!this.JUST_TOKEN('CLOSE_PAREN')) {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                var block = this.BLOCK();
-
-                if(block === null) {
-                    // this.i = iOld;
-                    //
-                    // return null;
-                }
-
-                return {
-                    params: params,
-                    expressions: block,
-                    theRest: this.tokens.splice(this.i)
-                };
-            },
-
-            JUST_TOKEN: function(type) {
-                return this.tokens[this.i++].type === type;
-            },
-
-            PARAMS: function() {
-                var iOld = this.i;
-
-                var firstParam = this.PARAM();
-
-                if(firstParam === null) {
-                    return [];
-                }
-
-                var params = [firstParam.id];
-
-                while(true) {
-                    if(!this.JUST_TOKEN('COMMA')) {
-                        this.i -= 1;
-                        break;
-                    }
-
-                    var nextParam = this.PARAM();
-
-                    if(nextParam === null) {
-                        this.i = iOld;
-                        return null;
-                    }
-
-                    params.push(nextParam.id);
-                }
-
-                return params;
-            },
-
-            PARAM: function() {
-                var iOld = this.i;
-
-                var varType = this.tokens[this.i++];
-
-                if(varType.type !== 'ID') {
-                    this.i = iOld;
-                    return null;
-                }
-
-                var varId = this.tokens[this.i++];
-
-                if(varId.type !== 'ID') {
-                    this.i = iOld;
-                    return null;
-                }
-
-                return {
-                    type: varType.s,
-                    id: varId.s
-                }
-            },
-
-            BLOCK: function() {
-                var iOld = this.i;
-
-                if(!this.JUST_TOKEN('OPEN_BRACE')) {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                var ifStatements = [];
-
-                while(true) {
-                    var ifStatement = this.IF_STATEMENT();
-
-                    if(ifStatement !== null) {
-                        ifStatements.push(ifStatement);
-
-                        console.log(ifStatements);
-
-                        continue;
-                    }
-
-                    var junkStatement = this.JUNK_STATEMENT();
-
-                    if(junkStatement !== null) {
-                        console.log("junk");
-
-                        continue;
-                    }
-
-                    break;
-                }
-
-                if(!this.JUST_TOKEN('CLOSE_BRACE')) {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                return ifStatements;
-            },
-
-            IF_STATEMENT: function() {
-                var iOld = this.i;
-
-                var ifKeyword = this.tokens[this.i++];
-
-                if(ifKeyword.type !== 'ID' || ifKeyword.s !== 'if') {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                console.log("10");
-
-                if(!this.JUST_TOKEN('OPEN_PAREN')) {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                console.log("10");
-
-                var expression = this.EXPRESSION();
-
-                if(expression === null) {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                console.log("10");
-
-                if(!this.JUST_TOKEN('CLOSE_PAREN')) {
-                    console.log(this.tokens[this.i - 1]);
-
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                console.log("10");
-
-                var junkBlock = this.BLOCK();
-
-                if(junkBlock === null) {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                return expression;
-            },
-
             EXPRESSION: function() {
+                return this.tokens;
+
                 var expression = this.OR_EXPRESSION();
 
                 if(expression !== null) {
@@ -491,6 +291,6 @@ var parseC = function() {
             }
         };
 
-        return parser.FUNCTION();
+        return parser.EXPRESSION();
     };
 }();
