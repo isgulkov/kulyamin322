@@ -65,6 +65,10 @@ var parseProduction = function() {
             }
         }
 
+        if(currentTerm !== "") {
+            prod.push(currentTerm);
+        }
+
         return prod;
     }
 }();

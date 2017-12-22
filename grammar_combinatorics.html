@@ -26,7 +26,7 @@
             <p>3. Результат:</p>
 
             <table class="results" id="results">
-                <tr><td style="width: 2em">1</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+
             </table>
 
             <p>4. Если ты телочка, позвони мне ( ͡° ͜ʖ ͡°)</p>
@@ -38,14 +38,30 @@
             var solve_and_display = function() {
                 var $results_section = $('#results_section');
                 $results_section.hide();
+                $('tr.generated').remove();
 
                 var $error_msg = $('#error_msg');
 
                 var prod = parseProduction($('#prod').val());
 
-                var allVariantIds = getAllVariantIds(prod);
+                var setConveringAllPairs = findVariantsThatCoverAllPairs(prod);
 
-                $error_msg.html(JSON.stringify(prod) + "<p>" + allVariantIds.length);
+                console.log(JSON.stringify(prod));
+                console.log(countTotalPairs(prod));
+
+                setConveringAllPairs.forEach(function(vId, i) {
+                    var newRow = "<tr class=\"generated\"><td class=\leftmost\">" + (i + 1) + "</td>";
+
+                    var v = getVariantByd(prod, vId);
+
+                    v.forEach(function(subV) {
+                        newRow += "<td>" + subV + "</td>";
+                    });
+
+                    newRow += "</tr>";
+
+                    $('table#results').append($(newRow));
+                });
 
                 $results_section.show();
             };

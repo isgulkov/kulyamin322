@@ -36,6 +36,12 @@ table.results td {
     text-align: center;
 }
 
+table.results td.leftmost {
+    font-weight: bold;
+
+    border: 1px solid #777777 !important;
+}
+
 table.results td.equally_narrow {
     width: 10%;
 }
