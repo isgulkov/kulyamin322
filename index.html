@@ -22,36 +22,95 @@
         table.results {
             width: 100%;
         }
+
+        table.results tr.heading td {
+            text-align: center;
+        }
+
+        .info {
+            color: red;
+        }
     </style>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+            crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="input_form">
-        <p><label for="code">1. Введите код:</label></p>
-        <p><textarea id="code"></textarea></p>
-        <p><input type="button" value="2. Нажмите меня" /></p>
-        <p>3. Результат:</p>
-        <table class="results" border="1">
-            <tr>
-                <td colspan="4">Количество элементарных условий</td>
-                <td>—</td>
-                <td colspan="3" rowspan="2">Ветвления</td>
-                <td rowspan="2">Полный набор комбинаций по MC/DC</td>
-            </tr>
-            <tr>
-                <td rowspan="2">пустая</td>
-                <td colspan="4">Элементарные условия</td>
-            </tr>
-            <tr>
-                <td>у1</td>
-                <td>у2</td>
-                <td>у3</td>
-                <td>у4</td>
-                <td>хуй</td>
-                <td>пизда</td>
-                <td>джигурда</td>
-                <td>малафья</td>
-            </tr>
-        </table>
+        <p><label for="code_area">1. Введите код:</label></p>
+        <p><textarea id="code_area">int method(int x, int y, int z)
+{
+    int a = 0;
+
+    if(x > 3 && z < 5 || x <= 3 && y > 0) {
+        a += 2;
+    }
+
+    if(x <= 3 && y < 0 || z >= 5) {
+        a += 5;
+    }
+
+    return a;
+}
+</textarea></p>
+        <p><input type="button" id="go" value="2. Нажмите меня" /></p>
+
+        <div id="results_section"> <!--style="display: none;"-->
+            <p>3. Результат:</p>
+
+            <p class="info" id="error_msg"></p>
+
+            <table class="results" border="1">
+                <tr class="heading">
+                    <td colspan="4">Количество элементарных условий:</td>
+                    <td>—</td>
+                    <td colspan="3" rowspan="2">Ветвления</td>
+                    <td rowspan="2">Полный набор комбинаций по MC/DC</td>
+                </tr>
+                <tr class="heading">
+                    <td rowspan="2" style="width: 1.5em;"></td>
+                    <td colspan="4">Элементарные условия</td>
+                </tr>
+                <tr class="heading">
+                    <td>у1</td>
+                    <td>у2</td>
+                    <td>у3</td>
+                    <td>у4</td>
+                    <td>хуй</td>
+                    <td>пизда</td>
+                    <td>джигурда</td>
+                    <td>малафья</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </table>
+
+            <p>4. Если ты телочка, позвони мне</p>
+        </div>
     </div>
+
+    <script src="js/parse.js"></script>
+    <script>
+        var solve_and_display = function() {
+            var ast = parseC($('#code_area').text);
+
+            $('#error_msg').text(JSON.stringify(ast));
+
+            $('#results_section').show();
+        };
+
+        $('#go').click(solve_and_display);
+
+        solve_and_display();
+    </script>
 </body>
 </html>
