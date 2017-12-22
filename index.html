@@ -101,7 +101,7 @@
     <script src="js/parse.js"></script>
     <script>
         var solve_and_display = function() {
-            var ast = parseC($('#code_area').text);
+            var ast = parseC($('#code_area').val());
 
             $('#error_msg').text(JSON.stringify(ast));
 
