@@ -90,7 +90,7 @@
                 </tr>
             </table>
 
-            <p>4. Если ты телочка, позвони мне</p>
+            <p>4. Если ты телочка, позвони мне ( ͡° ͜ʖ ͡°)</p>
         </div>
     </div>
 
@@ -103,24 +103,28 @@
                     - изменения аргументов в теле функции
                     - любых типов кроме инта
 
-            Вполне может попасться:
+            Вполне может оказаться:
                     - сравнение с числом по модулю
          */
+
         var solve_and_display = function() {
             var one = parseExpression($('#ex1').val());
             var another = parseExpression($('#ex2').val());
 
-            var simpleExpressions = extractSimpleExpressions(one, another);
+            var result = extractSimpleExpressions(one, another);
 
-            $('#error_msg').html("")
+            var $error_msg = $('#error_msg');
 
-            if(simpleExpressions.length !== 4) {
-                $('#error_msg').text("Простейших выражений получилось " + simpleExpressions.length
+            $error_msg.html("");
+
+            if(result.allSimpleExprs.length !== 4) {
+                $error_msg.text("Простейших выражений получилось " + result.allSimpleExprs.length
                     + ", а по числу столбцов в таблице должно быть только четыре. Либо условие"
                     + " было введено неправильно, либо я хз как такое решать");
             }
 
-            $('#error_msg').html($('#error_msg').html() + "<p>" + simpleExpressions.map(printSimpleExpr).join("<br/>"));
+            $error_msg.html($error_msg.html() + "<p>" + result.allSimpleExprs.map(printExpr).join("<br/>"));
+            $error_msg.html($error_msg.html() + "<p>" + result.bigExprs.map(printExpr).join("<br/>"));
 
             $('#results_section').show();
         };

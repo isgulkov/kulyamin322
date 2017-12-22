@@ -3,7 +3,7 @@ var oppositeOp = function(op) {
     return ['<', '>', '<=', '>=', '=='][['>', '<', '>=', '<=', '=='].indexOf(op)];
 };
 
-var areSimpleExprsEqual = function(one, another) {
+var areSimpleExprsEqual = function(one, another) { // TODO: identical
     if(!one.hasOwnProperty('op') || !another.hasOwnProperty('op')) {
         return undefined;
     }
@@ -37,8 +37,23 @@ var putIdOnTheLeft = function(simpleExpr) {
     }
 };
 
-var printSimpleExpr = function(expr) {
-    return expr.left.value + " " + expr.op + " " + expr.right.value;
+var printExpr = function(expr) {
+    if(expr === undefined) {
+        return "" + undefined;
+    }
+
+    if(expr.hasOwnProperty('value')) {
+        return "" + expr.value;
+    }
+    else if(expr.hasOwnProperty('left')) {
+        return printExpr(expr.left) + " " + expr.op + " " + printExpr(expr.right);
+    }
+    else if(expr.hasOwnProperty('arg')) {
+        return "!(" + printExpr(expr.arg) + ")";
+    }
+    else {
+        return expr; // TODO: remove
+    }
 };
 
 var inverseOp = function(op) {
@@ -95,5 +110,64 @@ var extractSimpleExpressions = function() {
         }
     }
 
-    return allSimpleExprs;
+    var substituteAllOccurrencesOnTheLeft = function(expression, simpleExpressions) {
+        if(expression.hasOwnProperty('left')) {
+            substituteAllOccurrences(expression.left, simpleExpressions);
+            substituteAllOccurrences(expression.right, simpleExpressions);
+
+            if(expression.left.kind === 'compare') {
+                for(var i in simpleExpressions) {
+                    if(areSimpleExprsEqual(simpleExpressions[i], expression.left)) {
+                        expression.left = simpleExpressions[i];
+
+                        break;
+                    }
+                    else if(areSimpleExprsInverse(simpleExpressions[i], expression.left)) {
+                        expression.left = {
+                            kind: 'logic',
+                            op: 'not',
+                            arg: expression.left
+                        };
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        if(expression.hasOwnProperty('arg')) {
+            substituteAllOccurrences(expression.arg, simpleExpressions);
+        }
+    };
+
+    var invert = function(expression) {
+        if(expression.kind === 'logic' && expression.hasOwnProperty('left')) {
+            invert(expression.left);
+            invert(expression.right);
+
+            var tmp = expression.left;
+            expression.left = expression.right;
+            expression.right = tmp;
+        }
+    };
+
+    var substituteAllOccurrences = function(expression, simpleExpressions) {
+        substituteAllOccurrencesOnTheLeft(expression, simpleExpressions);
+
+        invert(expression);
+
+        substituteAllOccurrencesOnTheLeft(expression, simpleExpressions);
+
+        invert(expression);
+    };
+
+    var bigExprs = Array.from(arguments);
+    bigExprs.forEach(function(expression) {
+        substituteAllOccurrences(expression, allSimpleExprs);
+    });
+
+    return {
+        allSimpleExprs: allSimpleExprs,
+        bigExprs: bigExprs
+    };
 };
