@@ -8,7 +8,7 @@ var parseExpression = function() {
         CLOSE_PAREN: /^\)/,
         COMPARE_OP: /^([><]=?|==)/,
         AND_OP: /^&&/,
-        OR_OP: /^\|\|/,
+        OR_OP: /^\|\|/
     };
 
     var tokenizeExpression = function(s) {
@@ -96,6 +96,7 @@ var parseExpression = function() {
                 }
 
                 return {
+                    kind: 'logic',
                     op: 'or',
                     left: leftOp,
                     right: rightOp
@@ -128,6 +129,7 @@ var parseExpression = function() {
                 }
 
                 return {
+                    kind: 'logic',
                     op: 'and',
                     left: leftOp,
                     right: rightOp
@@ -162,6 +164,7 @@ var parseExpression = function() {
                 }
 
                 return {
+                    kind: 'compare',
                     op: op.text,
                     left: leftOp,
                     right: rightOp
@@ -176,10 +179,16 @@ var parseExpression = function() {
                 console.log(tok);
 
                 if(tok.type === 'INTEGER') {
-                    return parseInt(tok.text);
+                    return {
+                        kind: 'atomicInt',
+                        value: parseInt(tok.text)
+                    };
                 }
                 else if(tok.type === 'ID') {
-                    return tok.text;
+                    return {
+                        kind: 'atomicId',
+                        value: tok.text
+                    };
                 }
                 else if(tok.type === 'OPEN_PAREN') {
                     var expression = this.parseExpression();
