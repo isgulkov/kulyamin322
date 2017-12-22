@@ -109,8 +109,6 @@ var extractSimpleExpressions = function() {
     for(var i in arguments) {
         var simpleExprs = getSimpleExprsRecursive(arguments[i]);
 
-        console.log(simpleExprs);
-
         for(var j in simpleExprs) {
             var newSimpleExpr = simpleExprs[j];
 
