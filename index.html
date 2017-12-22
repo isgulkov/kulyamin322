@@ -14,7 +14,12 @@
             background: #eeeeee;
         }
 
-        input.expression_code {
+        span.small {
+            font-size: 0.7em;
+            color: #898989;
+        }
+
+        input.expression_field {
             display: block;
             width: 100%;
             margin: 10px 0;
@@ -59,11 +64,11 @@
         <p>1. Введите выражения из ифов:</p>
 
         <p>
-            <input title="Первое выражение" class="expression_code" id="ex1" value="x > 3 && z < 5 || x <= 3 && y > 0"/>
-            <input title="Второе выражение" class="expression_code" id="ex2" value="x <= 3 && y < 0 || z >= 5"/>
+            <input title="Первое выражение" class="expression_field" id="ex1" value="x > 3 && z < 5 || x <= 3 && y > 0"/>
+            <input title="Второе выражение" class="expression_field" id="ex2" value="x <= 3 && y < 0 || z >= 5"/>
         </p>
 
-        <p><input type="button" id="go" value="2. Нажмите меня" /></p>
+        <p><input type="button" id="go" value="2. Нажмите меня" /> <span class="small">(⌘+Enter)</span></p>
 
         <p class="info" id="error_msg"></p>
 
@@ -174,6 +179,14 @@
 
             $results_section.show();
         };
+
+        var submitHotkeyPressed = function(e) {
+            if((e.ctrlKey || e.metaKey) && e.keyCode === 13) {
+                solve_and_display();
+            }
+        };
+
+        $('input.expression_field').keydown(submitHotkeyPressed).keyup(submitHotkeyPressed);
 
         $('#go').click(solve_and_display);
 
