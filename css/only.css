@@ -1,0 +1,49 @@
+
+div.input_form {
+    width: 60%;
+    min-width: 550px;
+    margin: 50px auto 0;
+
+    padding: 20px;
+
+    background: #eeeeee;
+}
+
+span.small {
+    font-size: 0.7em;
+    color: #898989;
+}
+
+input.wide {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+
+    font: 1.4em monospace;
+}
+
+table.results {
+    width: 100%;
+
+    border-collapse: collapse;
+    border: 4px ridge lightgray;
+}
+
+table.results td {
+    padding: 2px 3px;
+    border: 1px solid #aaaaaa;
+
+    text-align: center;
+}
+
+table.results td.equally_narrow {
+    width: 10%;
+}
+
+table.results tr.heading td {
+    text-align: center;
+}
+
+.info {
+    color: red;
+}

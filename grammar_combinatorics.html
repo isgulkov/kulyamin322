@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Солвер</title>
+    <link rel="stylesheet" href="css/only.css"/>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+            crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="input_form">
+        <h3>Солвер для одного из заданий экзамена по дисциплине «Тестирование»</h3>
+
+        <p>1. Введите грамматику:</p>
+
+        <p>
+            <input title="Продукция" class="wide" id="prod" value="(A)? B (C0|C1|C2) (D)* (E0|E1|E2) F (G0|G1)"/>
+        </p>
+
+        <p><input type="button" id="go" value="2. Нажмите меня" /> <span class="small">(⌘+Enter)</span></p>
+
+        <p class="info" id="error_msg"></p>
+
+        <div id="results_section"> <!--style="display: none;"-->
+            <p>3. Результат:</p>
+
+            <table class="results" id="results">
+                <tr><td style="width: 2em">1</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            </table>
+
+            <p>4. Если ты телочка, позвони мне ( ͡° ͜ʖ ͡°)</p>
+        </div>
+
+        <script src="js/parse_grammar.js"></script>
+        <script src="js/analyze_grammar.js"></script>
+        <script>
+            var solve_and_display = function() {
+                var $results_section = $('#results_section');
+                $results_section.hide();
+
+                var $error_msg = $('#error_msg');
+
+                var prod = parseProduction($('#prod').val());
+
+                var allVariantIds = getAllVariantIds(prod);
+
+                $error_msg.html(JSON.stringify(prod) + "<p>" + allVariantIds.length);
+
+                $results_section.show();
+            };
+
+            var submitHotkeyPressed = function(e) {
+                if((e.ctrlKey || e.metaKey) && e.keyCode === 13) {
+                    solve_and_display();
+                }
+            };
+
+            $('input.wide').keydown(submitHotkeyPressed).keyup(submitHotkeyPressed);
+
+            $('#go').click(solve_and_display);
+
+            solve_and_display();
+        </script>
+    </div>
+</body>
+</html>

@@ -3,56 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Солвер по тестированию</title>
-    <style type="text/css">
-        div.input_form {
-            width: 60%;
-            min-width: 550px;
-            margin: 50px auto 0;
-
-            padding: 20px;
-
-            background: #eeeeee;
-        }
-
-        span.small {
-            font-size: 0.7em;
-            color: #898989;
-        }
-
-        input.expression_field {
-            display: block;
-            width: 100%;
-            margin: 10px 0;
-
-            font: 1.4em monospace;
-        }
-
-        table.results {
-            width: 100%;
-
-            border-collapse: collapse;
-            border: 4px ridge lightgray;
-        }
-
-        table.results td {
-            padding: 2px 3px;
-            border: 1px solid #aaaaaa;
-
-            text-align: center;
-        }
-
-        table.results td.equally_narrow {
-            width: 10%;
-        }
-
-        table.results tr.heading td {
-            text-align: center;
-        }
-
-        .info {
-            color: red;
-        }
-    </style>
+    <link rel="stylesheet" href="css/only.css"/>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"
             integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
             crossorigin="anonymous"></script>
@@ -64,9 +15,9 @@
         <p>1. Введите выражения из ифов:</p>
 
         <p>
-            <input title="Первое выражение" class="expression_field" id="ex1" value="x > 3 && z < 5 || x <= 3 && y > 0"/>
-            <input title="Второе выражение" class="expression_field" id="ex2" value="x <= 3 && y < 0 || z >= 5"/>
-            <input title="Третье выражение" class="expression_field" id="ex3" value=""/>
+            <input title="Первое выражение" class="wide" id="ex1" value="x > 3 && z < 5 || x <= 3 && y > 0"/>
+            <input title="Второе выражение" class="wide" id="ex2" value="x <= 3 && y < 0 || z >= 5"/>
+            <input title="Третье выражение" class="wide" id="ex3" value=""/>
         </p>
 
         <p><input type="button" id="go" value="2. Нажмите меня" /> <span class="small">(⌘+Enter)</span></p>
@@ -103,7 +54,7 @@
         </div>
     </div>
 
-    <script src="js/parse.js"></script>
+    <script src="js/parse_logic.js"></script>
     <script src="js/analyze.js"></script>
     <script>
         /*
@@ -221,7 +172,7 @@
             }
         };
 
-        $('input.expression_field').keydown(submitHotkeyPressed).keyup(submitHotkeyPressed);
+        $('input.wide').keydown(submitHotkeyPressed).keyup(submitHotkeyPressed);
 
         $('#go').click(solve_and_display);
 
