@@ -44,13 +44,13 @@ var parseProduction = function() {
 
                     var alt = alternativesStack.pop();
 
-                    if(alt.length > 1) {
+                    if(alt.length === 1) {
+                        prod.push(alt[0]);
+                    }
+                    else if(alt.length > 1) {
                         prod.push({
                             '|': alt
                         });
-                    }
-                    else {
-                        prod.push(alt[0]);
                     }
                 }
             }
