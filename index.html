@@ -6,7 +6,7 @@
     <style type="text/css">
         div.input_form {
             width: 60%;
-            min-width: 800px;
+            min-width: 550px;
             margin: 50px auto 0;
 
             padding: 20px;
@@ -37,7 +37,7 @@
 </head>
 <body>
     <div class="input_form">
-        <h3>Солвер одного из заданий экзамена по дисциплине «Тестирование»</h3></h4>
+        <h3>Солвер для одного из заданий экзамена по дисциплине «Тестирование»</h3></h4>
 
         <p><label for="code_area">1. Введите код:</label></p>
 
@@ -103,10 +103,26 @@
 
     <script src="js/parse.js"></script>
     <script>
+        /*
+            Предположительно не будет:
+                    - вложенных ифов
+                    - изменения аргументов в теле функции
+                    - любых типов кроме инта
+         */
         var solve_and_display = function() {
             var f = parseC($('#code_area').val());
 
-            $('#error_msg').html("<p>Параметры: " + JSON.stringify(f.params) + "\n<p>Остальное дерьмо: " + JSON.stringify(f.theRest));
+            var pidormotKanal = "<p>Параметры: " + JSON.stringify(f.params) + "\n";
+
+            pidormotKanal += "<p>Условия ифорв:\n<ul>";
+
+            for(var i in f.expressions) {
+                pidormotKanal += "<li>" + JSON.stringify(f.expressions[i]) + "\n";
+            }
+
+            pidormotKanal += "</ul><p>Остальное дерьмо: " + JSON.stringify(f.theRest)
+
+            $('#error_msg').html(pidormotKanal);
 
             $('#results_section').show();
         };
