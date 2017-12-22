@@ -24,6 +24,20 @@
 
         table.results {
             width: 100%;
+
+            border-collapse: collapse;
+            border: 4px ridge lightgray;
+        }
+
+        table.results td {
+            padding: 2px 3px;
+            border: 1px solid #aaaaaa;
+
+            text-align: center;
+        }
+
+        table.results td.equally_narrow {
+            width: 10%;
         }
 
         table.results tr.heading td {
@@ -56,7 +70,7 @@
         <div id="results_section"> <!--style="display: none;"-->
             <p>3. Результат:</p>
 
-            <table class="results" border="1">
+            <table class="results" id="results">
                 <tr class="heading">
                     <td colspan="4">Количество элементарных условий:</td>
                     <td>—</td>
@@ -68,25 +82,14 @@
                     <td colspan="4">Элементарные условия</td>
                 </tr>
                 <tr class="heading">
-                    <td>у1</td>
-                    <td>у2</td>
-                    <td>у3</td>
-                    <td>у4</td>
-                    <td>хуй</td>
-                    <td>пизда</td>
-                    <td>джигурда</td>
+                    <td class="equally_narrow expression_display">у1</td>
+                    <td class="equally_narrow expression_display">у2</td>
+                    <td class="equally_narrow expression_display">у3</td>
+                    <td class="equally_narrow expression_display">у4</td>
+                    <td class="equally_narrow">хуй</td>
+                    <td class="equally_narrow">пизда</td>
+                    <td class="equally_narrow">джигурда</td>
                     <td>малафья</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
                 </tr>
             </table>
 
@@ -125,6 +128,38 @@
 
             $error_msg.html($error_msg.html() + "<p>" + result.allSimpleExprs.map(printExpr).join("<br/>"));
             $error_msg.html($error_msg.html() + "<p>" + result.bigExprs.map(printExpr).join("<br/>"));
+
+            $('table#results tr.generated').remove();
+
+            var $expression_display_cells = $('td.expression_display');
+
+            result.allSimpleExprs.forEach(function(expr, i) {
+                $expression_display_cells.eq(i).html(printExpr(expr));
+            });
+
+            for(var i = 0; i < 16; i++) {
+                var values = {};
+
+                var iTmp = i;
+
+                var newRow = "<tr class=\"generated row_" + i +"\"><td>" + (i + 1) +"</td>";
+
+                result.allSimpleExprs.forEach(function(simpleExpr) {
+                    values[simpleExpr] = (iTmp & 8) !== 0;
+
+                    newRow += "<td>" + ((iTmp & 8) / 8) + "</td>";
+
+                    iTmp <<= 1;
+                });
+
+                result.bigExprs.forEach(function(bigExpr) {
+                    newRow += "<td>" + (evaluateExpr(bigExpr, values) ? 1 : 0) + "</td>";
+                });
+
+                newRow += "<td></td><td></td></tr>";
+
+                $(newRow).appendTo($('table#results'));
+            }
 
             $('#results_section').show();
         };

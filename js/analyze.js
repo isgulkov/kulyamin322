@@ -56,6 +56,27 @@ var printExpr = function(expr) {
     }
 };
 
+var evaluateExpr = function(expression, values) {
+    if(expression.kind === 'compare') {
+        return values[expression];
+    }
+    else if(expression.kind === 'logic') {
+        if(expression.hasOwnProperty('arg')) {
+            return !evaluateExpr(expression.arg, values);
+        }
+
+        var leftVal = evaluateExpr(expression.left, values);
+        var rightVal = evaluateExpr(expression.right, values);
+
+        if(expression.op === 'and') {
+            return leftVal && rightVal;
+        }
+        else if(expression.op === 'or') {
+            return leftVal || rightVal;
+        }
+    }
+};
+
 var inverseOp = function(op) {
     return ['<', '<=', '>=', '>'][['>=', '>', '<', '<='].indexOf(op)];
 };
