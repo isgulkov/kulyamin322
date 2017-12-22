@@ -66,6 +66,7 @@
         <p>
             <input title="Первое выражение" class="expression_field" id="ex1" value="x > 3 && z < 5 || x <= 3 && y > 0"/>
             <input title="Второе выражение" class="expression_field" id="ex2" value="x <= 3 && y < 0 || z >= 5"/>
+            <input title="Третье выражение" class="expression_field" id="ex3" value=""/>
         </p>
 
         <p><input type="button" id="go" value="2. Нажмите меня" /> <span class="small">(⌘+Enter)</span></p>
@@ -119,12 +120,46 @@
             var $results_section = $('#results_section');
             $results_section.hide();
 
-            var one = parseExpression($('#ex1').val());
-            var another = parseExpression($('#ex2').val());
-
-            var result = extractSimpleExpressions(one, another);
-
             var $error_msg = $('#error_msg');
+
+            var parsedExpressions = ['#ex1', '#ex2', '#ex3'].map(function(inputSelector) {
+                var $input = $(inputSelector);
+
+                var expression = parseExpression($input.val());
+
+                $input.css('background-color', 'white');
+
+                if(expression === null) {
+                    $input.css('background-color', '#ffc0cb');
+
+                    return -10;
+                }
+                else if(expression.hasOwnProperty('emptyExpression')) {
+                    return undefined;
+                }
+
+                return expression;
+            });
+
+            console.log(parsedExpressions);
+
+            if(parsedExpressions.indexOf(-10) !== -1) {
+                $error_msg.text("Синтаксически неправильное (или неподдерживаемое) выражение");
+
+                return;
+            }
+
+            parsedExpressions = parsedExpressions.filter(function(x) { return x!== undefined });
+
+            if(parsedExpressions.length === 0) {
+                $error_msg.text("Не введено ни одного выражения");
+
+                return;
+            }
+
+            console.log("");
+
+            var result = extractSimpleExpressions.apply(null, parsedExpressions);
 
             $error_msg.html("");
 

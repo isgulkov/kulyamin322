@@ -47,7 +47,9 @@ var parseExpression = function() {
         var tokens = tokenizeExpression(s);
 
         if(tokens.length === 0) {
-            return {};
+            return {
+                emptyExpression: true
+            };
         }
 
         var parser = {
@@ -59,7 +61,7 @@ var parseExpression = function() {
             parseJustToken: function(type) {
                 var token = this.tokens[this.i++];
 
-                if(token === undefined || token.type !== type) {
+                if(token === undefined || (type !== undefined && token.type !== type)) {
                     this.i -= 1;
 
                     return null;
@@ -174,7 +176,11 @@ var parseExpression = function() {
             parseAtomic: function() {
                 var iOld = this.i;
 
-                var tok = this.tokens[this.i++];
+                var tok = this.parseJustToken();
+
+                if(tok === null) {
+                    return null;
+                }
 
                 if(tok.type === 'INTEGER') {
                     return {
