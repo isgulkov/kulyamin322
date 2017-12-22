@@ -51,9 +51,6 @@
 
                 var setCoveringAllPairs = findVariantsThatCoverAllPairs(prod);
 
-                console.log(JSON.stringify(prod));
-                console.log(countTotalPairs(prod));
-
                 setCoveringAllPairs.forEach(function(vId, i) {
                     var newRow = "<tr class=\"generated\"><td class=\"leftmost\">" + (i + 1) + "</td>";
 
@@ -174,8 +171,6 @@
                 return expression;
             });
 
-            console.log(parsedExpressions);
-
             if(parsedExpressions.indexOf(-10) !== -1) {
                 $error_msg.text("Синтаксически неправильное (или неподдерживаемое) выражение");
 
@@ -189,8 +184,6 @@
 
                 return;
             }
-
-            console.log("");
 
             var result = extractSimpleExpressions.apply(null, parsedExpressions);
 

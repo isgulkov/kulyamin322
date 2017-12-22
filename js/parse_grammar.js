@@ -1,6 +1,6 @@
 
 var parseProduction = function() {
-    var TERM_SYMBOL = /[a-zA-Z0-9]/
+    var TERM_SYMBOL = /[a-zA-Z0-9]/;
 
     return function(s) {
         s = s.replace(' ', '').replace('\t', '');
