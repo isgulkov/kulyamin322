@@ -85,7 +85,16 @@ var parseC = function() {
                     return null;
                 }
 
-                return [params, this.tokens.splice(this.i)];
+                if(!this.JUST_TOKEN('OPEN_BRACE')) {
+                    this.i = iOld;
+
+                    return null;
+                }
+
+                return {
+                    params: params,
+                    theRest: this.tokens.splice(this.i)
+                };
             },
 
             JUST_TOKEN: function(type) {
@@ -101,7 +110,7 @@ var parseC = function() {
                     return [];
                 }
 
-                var params = [firstParam];
+                var params = [firstParam.id];
 
                 while(true) {
                     if(!this.JUST_TOKEN('COMMA')) {
@@ -116,7 +125,7 @@ var parseC = function() {
                         return null;
                     }
 
-                    params.push(nextParam);
+                    params.push(nextParam.id);
                 }
 
                 return params;

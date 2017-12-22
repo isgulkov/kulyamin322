@@ -104,9 +104,9 @@
     <script src="js/parse.js"></script>
     <script>
         var solve_and_display = function() {
-            var ast = parseC($('#code_area').val());
+            var f = parseC($('#code_area').val());
 
-            $('#error_msg').text(JSON.stringify(ast));
+            $('#error_msg').html("<p>Параметры: " + JSON.stringify(f.params) + "\n<p>Остальное дерьмо: " + JSON.stringify(f.theRest));
 
             $('#results_section').show();
         };
