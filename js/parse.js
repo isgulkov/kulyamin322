@@ -44,46 +44,34 @@ var parseExpression = function() {
     };
 
     return function(s) {
+        var tokens = tokenizeExpression(s);
+
+        if(tokens.length === 0) {
+            return {};
+        }
+
         var parser = {
-            tokens: tokenizeExpression(s),
+            tokens: tokens,
             i: 0,
 
             error: "",
 
-            EXPRESSION: function() {
-                return this.tokens;
+            parseJustToken: function(type) {
+                var token = this.tokens[this.i++];
 
-                var expression = this.OR_EXPRESSION();
+                if(token === undefined || token.type !== type) {
+                    this.i -= 1;
 
-                if(expression !== null) {
-                    return expression;
+                    return null;
                 }
 
-                expression = this.AND_EXPRESSION();
-
-                if(expression !== null) {
-                    return expression;
-                }
-
-                expression = this.COMPARE_EXPRESSION();
-
-                if(expression !== null) {
-                    return expression;
-                }
-
-                expression = this.ATOMIC_EXPRESSION();
-
-                if(expression !== null) {
-                    return expression;
-                }
-
-                return null;
+                return token;
             },
 
-            OR_EXPRESSION: function() {
+            parseExpression: function() {
                 var iOld = this.i;
 
-                var leftOp = this.AND_EXPRESSION();
+                var leftOp = this.parseAnd();
 
                 if(leftOp === null) {
                     this.i = iOld;
@@ -91,15 +79,15 @@ var parseExpression = function() {
                     return null;
                 }
 
-                var op = this.tokens[this.i++];
+                var op = this.parseJustToken('OR_OP');
 
-                if(op.type !== 'OR_OP') {
+                if(op === null) {
                     this.i = iOld;
 
-                    return this.AND_EXPRESSION();
+                    return this.parseAnd();
                 }
 
-                var rightOp = this.AND_EXPRESSION();
+                var rightOp = this.parseAnd();
 
                 if(rightOp === null) {
                     this.i = iOld;
@@ -114,10 +102,10 @@ var parseExpression = function() {
                 }
             },
 
-            AND_EXPRESSION: function() {
+            parseAnd: function() {
                 var iOld = this.i;
 
-                var leftOp = this.COMPARE_EXPRESSION();
+                var leftOp = this.parseCompare();
 
                 if(leftOp === null) {
                     this.i = iOld;
@@ -125,15 +113,13 @@ var parseExpression = function() {
                     return null;
                 }
 
-                var op = this.tokens[this.i++];
-
-                if(op.type !== 'AND_OP') {
+                if(!this.parseJustToken('AND_OP')) {
                     this.i = iOld;
 
-                    return this.COMPARE_EXPRESSION();
+                    return this.parseCompare();
                 }
 
-                var rightOp = this.COMPARE_EXPRESSION();
+                var rightOp = this.parseCompare();
 
                 if(rightOp === null) {
                     this.i = iOld;
@@ -148,10 +134,10 @@ var parseExpression = function() {
                 }
             },
 
-            COMPARE_EXPRESSION: function() {
+            parseCompare: function() {
                 var iOld = this.i;
 
-                var leftOp = this.ATOMIC_EXPRESSION();
+                var leftOp = this.parseAtomic();
 
                 if(leftOp === null) {
                     this.i = iOld;
@@ -159,17 +145,15 @@ var parseExpression = function() {
                     return null;
                 }
 
-                var op = this.tokens[this.i++];
+                var op = this.parseJustToken('COMPARE_OP');
 
-                console.log(this.tokens[this.i - 2]);
-
-                if(op.type !== 'COMPARE_OP') {
+                if(op === null) {
                     this.i = iOld;
 
-                    return this.ATOMIC_EXPRESSION();
+                    return this.parseAtomic();
                 }
 
-                var rightOp = this.ATOMIC_EXPRESSION();
+                var rightOp = this.parseAtomic();
 
                 if(rightOp === null) {
                     this.i = iOld;
@@ -178,119 +162,41 @@ var parseExpression = function() {
                 }
 
                 return {
-                    op: op.s,
+                    op: op.text,
                     left: leftOp,
                     right: rightOp
                 }
             },
 
-            ATOMIC_EXPRESSION: function() {
+            parseAtomic: function() {
                 var iOld = this.i;
 
                 var tok = this.tokens[this.i++];
+
+                console.log(tok);
 
                 if(tok.type === 'INTEGER') {
-                    return parseInt(tok.s);
+                    return parseInt(tok.text);
                 }
                 else if(tok.type === 'ID') {
-                    return tok.s;
+                    return tok.text;
                 }
-                else {
-                    this.i = iOld;
-                }
+                else if(tok.type === 'OPEN_PAREN') {
+                    var expression = this.parseExpression();
 
-                if(!this.JUST_TOKEN('OPEN_PAREN')) {
-                    this.i = iOld;
+                    if(expression === null || !this.parseJustToken('CLOSE_PAREN')) {
+                        this.i = iOld;
 
-                    return null;
-                }
+                        return null;
+                    }
 
-                var expr = this.EXPRESSION();
-
-                if(expr === null) {
-                    this.i = iOld;
-
-                    return null;
+                    return expression;
                 }
 
-                if(!this.JUST_TOKEN('CLOSE_PAREN')) {
-                    this.i = iOld;
-
-                    return null;
-                }
-            },
-
-            JUNK_STATEMENT: function() {
-                var iOld = this.i;
-
-                var returnStmt = this.RETURN_STATEMENT();
-
-                if(returnStmt !== null) {
-                    return returnStmt;
-                }
-
-                if(this.tokens[this.i++].type !== 'ID') {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                if(this.tokens[this.i].type === 'ID') {
-                    this.i += 1;
-                }
-
-                if(this.tokens[this.i++].type !== 'ASSIGN_OP') {
-                    this.i = iOld;
-
-                    console.log(this.tokens[this.i]);
-
-                    return null;
-                }
-
-                if(this.ATOMIC_EXPRESSION() === null) {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                if(this.tokens[this.i++].type !== 'SEMICOLON') {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                return true;
-            },
-
-            RETURN_STATEMENT: function() {
-                var iOld = this.i;
-
-                var tok = this.tokens[this.i++];
-
-                if(tok.type !== 'ID' || tok.s !== 'return') {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                var expression = this.EXPRESSION();
-
-                if(expression === null) {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                if(this.tokens[this.i++].type !== 'SEMICOLON') {
-                    this.i = iOld;
-
-                    return null;
-                }
-
-                return true;
+                return null;
             }
         };
 
-        return parser.EXPRESSION();
+        return parser.parseExpression();
     };
 }();

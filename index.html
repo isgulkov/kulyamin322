@@ -106,7 +106,7 @@
             var one = parseExpression($('#ex1').val());
             var another = parseExpression($('#ex2').val());
 
-            $('#error_msg').html("<p>" + one.join(' ') + "<p>" + another.join(' '));
+            $('#error_msg').html("<p>" + JSON.stringify(one) + "<p>" + JSON.stringify(another));
 
             $('#results_section').show();
         };
