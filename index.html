@@ -50,14 +50,12 @@
 
                 var prod = parseProduction($('#prod').val());
 
-                var setCoveringAllPairs = findVariantsThatCoverAllPairs(prod);
+                var setCoveringAllPairs = findVariantVectorsThatCoverAllPairs(prod);
 
                 setCoveringAllPairs.forEach(function(vId, i) {
                     var newRow = "<tr class=\"generated\"><td class=\"leftmost\">" + (i + 1) + "</td>";
 
-                    var v = getVariantByd(prod, vId);
-
-                    v.forEach(function(subV) {
+                    vId.forEach(function(subV) {
                         newRow += "<td>" + subV + "</td>";
                     });
 

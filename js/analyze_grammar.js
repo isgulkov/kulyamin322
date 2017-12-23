@@ -1,42 +1,21 @@
 
-var getAllVariantIds = function(prod) {
+var getAllVariantVectors = function(prod) {
     var allVariants = [[]];
 
     prod.forEach(function(subProd) {
-        var varIds = getLocalVariantIds(subProd);
+        var varIds = getLocalVariants(subProd);
 
-        allVariants = appendToAll(allVariants, varIds);
+        allVariants = appendToAllArrays(allVariants, varIds);
     });
 
     return allVariants;
 };
 
-var getLocalVariantIds = function(subProd) {
-    if(typeof subProd === 'string') {
-        return [0];
-    }
-    else if(subProd.hasOwnProperty('?')) {
-        return [0, 1];
-    }
-    else if(subProd.hasOwnProperty('*') || subProd.hasOwnProperty('+')) {
-        return [0, 1, 2];
-    }
-    else if(subProd.hasOwnProperty('|')) {
-        var varIds = [];
-
-        for(var i = 0; i < subProd['|'].length; i++) {
-            varIds.push(i);
-        }
-
-        return varIds;
-    }
-};
-
-var appendToAll = function(penis, enlargement) {
+var appendToAllArrays = function(penises, enlargements) {
     var result = [];
 
-    penis.forEach(function(s){
-        enlargement.forEach(function(t) {
+    penises.forEach(function(s){
+        enlargements.forEach(function(t) {
             result.push(s.concat([t]));
         });
     });
@@ -44,58 +23,74 @@ var appendToAll = function(penis, enlargement) {
     return result;
 };
 
-var getVariantByd = function(prod, variantId) {
-    var variant = [];
-
-    variantId.forEach(function(id, i) {
-        variant.push(getSubProdVariantById(prod[i], id));
-    });
-
-    return variant;
-};
-
-var getSubProdVariantById = function(subProd, i) {
-    if(subProd.hasOwnProperty('?')) {
-        return i == 1 ? subProd['?'] : "";
+var getLocalVariants = function(subProd) {
+    if(typeof subProd === 'string') {
+        return [subProd];
+    }
+    else if(subProd.hasOwnProperty('?')) {
+        return [""].concat(getLocalVariants(subProd['?']));
     }
     else if(subProd.hasOwnProperty('*')) {
-        return subProd['*'].repeat(i);
+        var variants = {
+            "": true
+        };
+
+        var sVariants = [""].concat(getLocalVariants(subProd['*']));
+
+        sVariants.forEach(function(s) {
+            sVariants.forEach(function(t) {
+                variants[s + t] = true;
+            });
+        });
+
+        return Object.keys(variants);
     }
     else if(subProd.hasOwnProperty('+')) {
-        return subProd['+'].repeat(i + 1);
-    }
-    else if(typeof subProd === 'string') {
-        return subProd;
+        var newVariants = {};
+
+        var pVariants = [""].concat(getLocalVariants(subProd['+']));
+
+        pVariants.forEach(function(s) {
+            pVariants.forEach(function(t) {
+                pVariants.forEach(function(u) {
+                    newVariants[s + t + u] = true;
+                });
+            });
+        });
+
+        delete newVariants[""];
+
+        return Object.keys(newVariants);
     }
     else if(subProd.hasOwnProperty('|')) {
-        return subProd['|'][i];
+        return subProd['|'];
     }
 };
 
-var findVariantsThatCoverAllPairs = function(prod)
+var findVariantVectorsThatCoverAllPairs = function(prod)
 {
-    var allVariantIds = getAllVariantIds(prod);
+    var allVariantVs = getAllVariantVectors(prod);
 
-    var selectedVarIds = [];
+    var selectedVarVs = [];
 
     var numTotalPairs = countTotalPairs(prod);
     var knownPairs = {};
 
     while(Object.keys(knownPairs).length < numTotalPairs) {
-        var iBest = indexMaxByKey(allVariantIds, function(varId) {
+        var iBest = indexMaxByKey(allVariantVs, function(varId) {
             return countNewPairs(knownPairs, varId);
         });
 
-        getPairs(allVariantIds[iBest]).forEach(function(p) {
+        getPairs(allVariantVs[iBest]).forEach(function(p) {
             knownPairs[p] = true;
         });
 
-        selectedVarIds.push(allVariantIds[iBest]);
+        selectedVarVs.push(allVariantVs[iBest]);
 
-        allVariantIds.splice(iBest, 1);
+        allVariantVs.splice(iBest, 1);
     }
 
-    return selectedVarIds;
+    return selectedVarVs;
 };
 
 var indexMaxByKey = function(arr, f) {
@@ -114,12 +109,10 @@ var indexMaxByKey = function(arr, f) {
     return iMax;
 };
 
-var countNewPairs = function(knownPairs, variantId) {
-    var variantPairs = getPairs(variantId);
+var countNewPairs = function(knownPairs, variantV) {
+    var variantPairs = getPairs(variantV);
 
     var numNewPairs = 0;
-
-    // console.log(variantPairs);
 
     variantPairs.forEach(function(p) {
         if(knownPairs[p] === undefined) {
@@ -135,19 +128,19 @@ var countTotalPairs = function(prod) {
 
     for(var i = 0; i < prod.length; i++) {
         for(var j = i + 1; j < prod.length; j++) {
-            result += getLocalVariantIds(prod[i]).length * getLocalVariantIds(prod[j]).length;
+            result += getLocalVariants(prod[i]).length * getLocalVariants(prod[j]).length;
         }
     }
 
     return result
-}
+};
 
-var getPairs = function(variantId) {
+var getPairs = function(variantV) {
     var pairs = [];
 
-    for(var i = 0; i < variantId.length; i++) {
-        for(var j = i + 1; j < variantId.length; j++) {
-            pairs.push(1000 * i + 100 * variantId[i] + 10 * j + variantId[j]);
+    for(var i = 0; i < variantV.length; i++) {
+        for(var j = i + 1; j < variantV.length; j++) {
+            pairs.push("" + i + variantV[i] + "/" + j + variantV[j]);
         }
     }
 
