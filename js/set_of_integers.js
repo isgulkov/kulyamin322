@@ -188,5 +188,76 @@ SetOfIntegers.prototype.intersect = function(other) {
 };
 
 SetOfIntegers.prototype.union = function(other) {
-    //
+    // TODO: DRY ?
+
+    var newBoundaries = [];
+
+    var insideBoth = true;
+
+    var iThis = 0, iOther = 0;
+
+    var insideThis = true, insideOther = true;
+
+    while(iThis < this.boundaries.length && iOther < other.boundaries.length) {
+        var newX;
+        var newInclude;
+
+        if(this.boundaries[iThis].x < other.boundaries[iOther].x) {
+
+            var thisBound = this.boundaries[iThis++];
+
+            newX = thisBound.x;
+            newInclude = thisBound.include;
+
+            insideThis = !insideThis;
+        }
+        else if(this.boundaries[iThis].x === other.boundaries[iOther].x) {
+            newX = this.boundaries[iThis].x;
+
+            newInclude = this.boundaries[iThis].include || other.boundaries[iOther].include;
+
+            iThis += 1;
+            iOther += 1;
+
+            insideThis = !insideThis;
+            insideOther = !insideOther;
+        }
+        else /* > */ {
+            var otherBound = other.boundaries[iOther++];
+
+            newX = otherBound.x;
+            newInclude = otherBound.include;
+
+            insideOther = !insideOther;
+        }
+
+        if(insideBoth !== (insideThis || insideOther)) {
+            insideBoth = insideThis || insideOther;
+
+            newBoundaries.push({
+                x: newX,
+                include: newInclude
+            })
+        }
+    }
+
+    while(iThis < this.boundaries.length) {
+        for(; iThis < this.boundaries.length; iThis++) {
+            newBoundaries.push({
+                x: this.boundaries[iThis].x,
+                include: this.boundaries[iThis].include
+            })
+        }
+    }
+
+    while(iOther < other.boundaries.length) {
+        for(; iOther < other.boundaries.length; iOther++) {
+            newBoundaries.push({
+                x: other.boundaries[iOther].x,
+                include: other.boundaries[iOther].include
+            })
+        }
+    }
+
+    return new SetOfIntegers(newBoundaries);
 };
