@@ -98,7 +98,7 @@
 
         <p class="info error_msg"></p>
 
-        <div class="results_section"> <!--style="display: none;"-->
+        <div class="results_section" style="display: none;">
             <p>3. Результат:</p>
 
             <table class="results">
@@ -106,7 +106,7 @@
                     <td colspan="4">Количество элементарных условий:</td>
                     <td id="num_simple_exprs">—</td>
                     <td colspan="3" rowspan="2">Ветвления</td>
-                    <td rowspan="2">Полный набор комбинаций по MC/DC</td>
+                    <td rowspan="3">Полный набор комбинаций по MC/DC</td>
                 </tr>
                 <tr class="heading">
                     <td rowspan="2" style="width: 1.5em;"></td>
@@ -120,7 +120,6 @@
                     <td class="equally_narrow">I</td>
                     <td class="equally_narrow">II</td>
                     <td class="equally_narrow">III</td>
-                    <td class="combination_display"></td>
                 </tr>
             </table>
 
@@ -130,157 +129,165 @@
 
             <p>4. Если ты телочка, позвони мне ( ͡° ͜ʖ ͡°)</p>
         </div>
+
+        <script src="js/parse_logic.js"></script>
+        <script src="js/numeric_constraints.js"></script>
+        <script src="js/analyze_logic.js"></script>
+        <script>
+            /*
+                Предположительно не будет:
+                        - вложенных ифов
+                        - изменения аргументов в теле функции
+                        - любых типов кроме инта
+
+                Вполне может оказаться:
+                        - сравнение с числом по модулю
+                        - элементарных условий менее 4 (клеточка-то есть)
+             */
+
+            var $solverMCDC = $('#solver_mcdc');
+
+            var solveAndDisplayMCDC = function() {
+                var $results_section = $solverMCDC.find('.results_section');
+
+                $results_section.hide();
+
+                var $error_msg = $solverMCDC.find('.error_msg');
+
+                var parsedExpressions = ['#ex1', '#ex2', '#ex3'].map(function(inputSelector) {
+                    var $input = $(inputSelector);
+
+                    var expression = parseExpression($input.val());
+
+                    $input.css('background-color', 'white');
+
+                    if(expression === null) {
+                        $input.css('background-color', '#ffc0cb');
+
+                        return -10;
+                    }
+                    else if(expression.hasOwnProperty('emptyExpression')) {
+                        return undefined;
+                    }
+
+                    return expression;
+                });
+
+                if(parsedExpressions.indexOf(-10) !== -1) {
+                    $error_msg.text("Синтаксически неправильное (или неподдерживаемое) выражение");
+
+                    return;
+                }
+
+                parsedExpressions = parsedExpressions.filter(function(x) { return x!== undefined });
+
+                if(parsedExpressions.length === 0) {
+                    $error_msg.text("Не введено ни одного выражения");
+
+                    return;
+                }
+
+                var result = extractSimpleExpressions.apply(null, parsedExpressions);
+
+                $error_msg.html("");
+
+                if(result.allSimpleExprs.length !== 4) {
+                    $error_msg.text("Простейших выражений получилось " + result.allSimpleExprs.length
+                        + ", а по числу столбцов в таблице должно быть только четыре. Либо условие"
+                        + " было введено неправильно, либо я хз как такое решать");
+
+                    return;
+                }
+
+                $solverMCDC.find('#num_simple_exprs').text(result.allSimpleExprs.length);
+
+                $solverMCDC.find('tr.generated').remove();
+
+                var $expression_display_cells = $('td.expression_display');
+
+                result.allSimpleExprs.forEach(function(expr, i) {
+                    $expression_display_cells.eq(i).html(printExpr(expr));
+                });
+
+                var evalCombinations = [];
+                var evalResults = [];
+
+                for(var j = 0; j < result.bigExprs.length; j++) {
+                    evalResults.push([]);
+                }
+
+                for(var i = 0; i < 16; i++) {
+                    var values = [];
+
+                    var iTmp = i;
+
+                    var newRow = "<tr class='generated row_" + i +"'><td>" + (i + 1) +"</td>";
+
+                    result.allSimpleExprs.forEach(function(simpleExpr) {
+                        values.push((iTmp & 8) !== 0);
+
+                        newRow += "<td class='combo'>" + ((iTmp & 8) / 8) + "</td>";
+
+                        iTmp <<= 1;
+                    });
+
+                    var combination = findCombination(result.allSimpleExprs, values);
+
+                    result.bigExprs.forEach(function(bigExpr, i) {
+                        var evalResult = evaluateExpr(bigExpr, result.allSimpleExprs, values);
+
+                        newRow += "<td class='combo'>" + (evalResult ? 1 : 0) + "</td>";
+
+                        evalResults[i].push(evalResult);
+                    });
+
+                    newRow += ("<td class='combo'></td>").repeat(3 - result.bigExprs.length);
+                    newRow += "<td class='combination_marking'></td></tr>";
+
+                    $(newRow).appendTo($solverMCDC.find('table.results'));
+
+                    if(combination === null) {
+                        $solverMCDC.find('tr.generated').last().find('td.combo').css('background-color', 'pink')
+                    }
+
+                    evalCombinations.push(combination);
+                }
+
+                var coveringSet = getCoveringSetMCDC(evalCombinations, evalResults);
+
+                if(coveringSet.pairsNotCovered.length !== 0) {
+                    $error_msg.html("<p>Че-то остались непокрытыми следующие пары:</p>"
+                        + "<ul>" + coveringSet.pairsNotCovered.map(function(p) {
+                            return "<li>Условие " + printExpr(result.allSimpleExprs[p.iVar]) + ", ветвление " + (p.iExpr + 1) + "</li>";
+                        }).join("\n") + "</ul>")
+                }
+
+                $solverMCDC.find(".combination_marking").each(function(i, cell) {
+                    if(coveringSet.ixSelected[i]) {
+                        $(cell).text("*");
+                    }
+                });
+
+                $results_section.show();
+            };
+
+            var submitHotkeyPressedMCDC = function(e) {
+                if(e === undefined) {
+                    return;
+                }
+
+                if((e.ctrlKey || e.metaKey) && e.keyCode === 13) {
+                    solveAndDisplayMCDC();
+                }
+            };
+
+            $solverMCDC.find('input.wide').keydown(submitHotkeyPressedMCDC).keyup(submitHotkeyPressedMCDC);
+
+            $solverMCDC.find('.go').click(solveAndDisplayMCDC);
+
+    //        solveAndDisplayMCDC();
+        </script>
     </div>
-
-    <script src="js/parse_logic.js"></script>
-    <script src="js/numeric_constraints.js"></script>
-    <script src="js/analyze_logic.js"></script>
-    <script>
-        /*
-            Предположительно не будет:
-                    - вложенных ифов
-                    - изменения аргументов в теле функции
-                    - любых типов кроме инта
-
-            Вполне может оказаться:
-                    - сравнение с числом по модулю
-                    - элементарных условий менее 4 (клеточка-то есть)
-         */
-
-        var $solverMCDC = $('#solver_mcdc');
-
-        var solveAndDisplayMCDC = function() {
-            var $results_section = $('#results_section');
-            $results_section.hide();
-
-            var $error_msg = $solverMCDC.find('.error_msg');
-
-            var parsedExpressions = ['#ex1', '#ex2', '#ex3'].map(function(inputSelector) {
-                var $input = $(inputSelector);
-
-                var expression = parseExpression($input.val());
-
-                $input.css('background-color', 'white');
-
-                if(expression === null) {
-                    $input.css('background-color', '#ffc0cb');
-
-                    return -10;
-                }
-                else if(expression.hasOwnProperty('emptyExpression')) {
-                    return undefined;
-                }
-
-                return expression;
-            });
-
-            if(parsedExpressions.indexOf(-10) !== -1) {
-                $error_msg.text("Синтаксически неправильное (или неподдерживаемое) выражение");
-
-                return;
-            }
-
-            parsedExpressions = parsedExpressions.filter(function(x) { return x!== undefined });
-
-            if(parsedExpressions.length === 0) {
-                $error_msg.text("Не введено ни одного выражения");
-
-                return;
-            }
-
-            var result = extractSimpleExpressions.apply(null, parsedExpressions);
-
-            $error_msg.html("");
-
-            if(result.allSimpleExprs.length !== 4) {
-                $error_msg.text("Простейших выражений получилось " + result.allSimpleExprs.length
-                    + ", а по числу столбцов в таблице должно быть только четыре. Либо условие"
-                    + " было введено неправильно, либо я хз как такое решать");
-
-                return;
-            }
-
-            $solverMCDC.find('#num_simple_exprs').text(result.allSimpleExprs.length);
-
-            $solverMCDC.find('tr.generated').remove();
-
-            var $expression_display_cells = $('td.expression_display');
-
-            result.allSimpleExprs.forEach(function(expr, i) {
-                $expression_display_cells.eq(i).html(printExpr(expr));
-            });
-
-            var evalCombinations = [];
-            var evalResults = [];
-
-            for(var j = 0; j < result.bigExprs.length; j++) {
-                evalResults.push([]);
-            }
-
-            for(var i = 0; i < 16; i++) {
-                var values = [];
-
-                var iTmp = i;
-
-                var newRow = "<tr class='generated row_" + i +"'><td>" + (i + 1) +"</td>";
-
-                result.allSimpleExprs.forEach(function(simpleExpr) {
-                    values.push((iTmp & 8) !== 0);
-
-                    newRow += "<td class='combo'>" + ((iTmp & 8) / 8) + "</td>";
-
-                    iTmp <<= 1;
-                });
-
-                var combination = findCombination(result.allSimpleExprs, values);
-
-                result.bigExprs.forEach(function(bigExpr, i) {
-                    var evalResult = evaluateExpr(bigExpr, result.allSimpleExprs, values);
-
-                    newRow += "<td class='combo'>" + (evalResult ? 1 : 0) + "</td>";
-
-                    evalResults[i].push(evalResult);
-                });
-
-                newRow += ("<td class='combo'></td>").repeat(3 - result.bigExprs.length);
-                newRow += "<td class='combination_display'></td></tr>";
-
-                $(newRow).appendTo($solverMCDC.find('table.results'));
-
-                if(combination === null) {
-                    $solverMCDC.find('tr.generated').last().find('td.combo').css('background-color', 'pink')
-                }
-
-                evalCombinations.push(combination);
-            }
-
-            var selectedCombinations = getCoveringSetMCDC(evalCombinations, evalResults);
-
-            $solverMCDC.find(".combination_display").each(function(i, cell) {
-                if(i < selectedCombinations.length) {
-                    $(cell).text("(" + selectedCombinations[i].join(", ") + ")");
-                }
-            });
-
-            $results_section.show();
-        };
-
-        var submitHotkeyPressedMCDC = function(e) {
-            if(e === undefined) {
-                return;
-            }
-
-            if((e.ctrlKey || e.metaKey) && e.keyCode === 13) {
-                solveAndDisplayMCDC();
-            }
-        };
-
-        $solverMCDC.find('input.wide').keydown(submitHotkeyPressedMCDC).keyup(submitHotkeyPressedMCDC);
-
-        $solverMCDC.find('.go').click(solveAndDisplayMCDC);
-
-        solveAndDisplayMCDC();
-    </script>
 
     <div class="footer">
         <p>Фидбек слать вк.</p>

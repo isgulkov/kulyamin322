@@ -228,6 +228,55 @@ var findCombination = function(simpleExpressions, values) {
     }
 };
 
-var getCoveringSetMCDC = function(combinations, values) {
-    return combinations.filter(function(p1, p2, p3) { return p1 !== null; });
+var intLog2 = function(x) {
+    var result = 0;
+
+    while(x >= 2) {
+        result += 1;
+        x /= 2;
+    }
+
+    return result;
+};
+
+var getCoveringSetMCDC = function(combinations, exprValues) {
+    var ixSelected = {};
+    var pairsNotCovered = [];
+
+    for(var iVar = 0; iVar < intLog2(combinations.length); iVar++) {
+        var varBit = 8 >> iVar;
+
+        for(var iExpr = 0; iExpr < exprValues.length; iExpr++) {
+            var foundPair = false;
+
+            for(var iComb = 0; iComb < combinations.length; iComb++) {
+                var iOtherComb = iComb ^ varBit;
+
+                if(iOtherComb <= iComb) {
+                    continue;
+                }
+
+                if(exprValues[iExpr][iComb] !== exprValues[iExpr][iOtherComb]) {
+                    ixSelected[iComb] = true;
+                    ixSelected[iOtherComb] = true;
+
+                    foundPair = true;
+
+                    break;
+                }
+            }
+
+            if(!foundPair) {
+                pairsNotCovered.push({
+                    iVar: iVar,
+                    iExpr: iExpr
+                });
+            }
+        }
+    }
+
+    return {
+        ixSelected: ixSelected,
+        pairsNotCovered: pairsNotCovered
+    }
 };
