@@ -144,8 +144,6 @@
 
             Вполне может оказаться:
                     - сравнение с числом по модулю
-
-            TODO: не работает на первом примере при смене мест!
          */
 
         var $solverMCDC = $('#solver_mcdc');
@@ -222,25 +220,29 @@
                 result.allSimpleExprs.forEach(function(simpleExpr) {
                     values.push((iTmp & 8) !== 0);
 
-                    newRow += "<td>" + ((iTmp & 8) / 8) + "</td>";
+                    newRow += "<td class='combo'>" + ((iTmp & 8) / 8) + "</td>";
 
                     iTmp <<= 1;
                 });
 
-                console.log(i, findCombination(result.allSimpleExprs, values));
+                var combination = findCombination(result.allSimpleExprs, values);
 
                 result.bigExprs.forEach(function(bigExpr) {
                     var evalResult = evaluateExpr(bigExpr, result.allSimpleExprs, values);
 
-                    newRow += "<td>" + (evalResult ? 1 : 0) + "</td>";
+                    newRow += "<td class='combo'>" + (evalResult ? 1 : 0) + "</td>";
 
                     evalResults.push(evalResult);
                 });
 
-                newRow += ("<td></td>").repeat(3 - result.bigExprs.length);
+                newRow += ("<td class='combo'></td>").repeat(3 - result.bigExprs.length);
                 newRow += "<td class='combination_display'></td></tr>";
 
                 $(newRow).appendTo($solverMCDC.find('table.results'));
+
+                if(combination === null) {
+                    $solverMCDC.find('tr.generated').last().find('td.combo').css('background-color', 'pink')
+                }
             }
 
             $results_section.show();
