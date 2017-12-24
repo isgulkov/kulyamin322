@@ -104,7 +104,7 @@
             <table class="results">
                 <tr class="heading">
                     <td colspan="4">Количество элементарных условий:</td>
-                    <td>—</td>
+                    <td id="num_simple_exprs">—</td>
                     <td colspan="3" rowspan="2">Ветвления</td>
                     <td rowspan="2">Полный набор комбинаций по MC/DC</td>
                 </tr>
@@ -144,6 +144,7 @@
 
             Вполне может оказаться:
                     - сравнение с числом по модулю
+                    - элементарных условий менее 4 (клеточка-то есть)
          */
 
         var $solverMCDC = $('#solver_mcdc');
@@ -198,6 +199,8 @@
 
                 return;
             }
+
+            $solverMCDC.find('#num_simple_exprs').text(result.allSimpleExprs.length);
 
             $solverMCDC.find('tr.generated').remove();
 
