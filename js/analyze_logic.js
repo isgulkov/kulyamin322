@@ -145,7 +145,7 @@ var extractSimpleExpressions = function() {
                         expression.left = {
                             kind: 'logic',
                             op: 'not',
-                            arg: expression.left
+                            arg: simpleExpressions[i]
                         };
 
                         break;
