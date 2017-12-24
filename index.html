@@ -120,7 +120,7 @@
                     <td class="equally_narrow">I</td>
                     <td class="equally_narrow">II</td>
                     <td class="equally_narrow">III</td>
-                    <td>малафья</td>
+                    <td class="combination_display"></td>
                 </tr>
             </table>
 
@@ -210,6 +210,10 @@
             var evalCombinations = [];
             var evalResults = [];
 
+            for(var j = 0; j < result.bigExprs.length; j++) {
+                evalResults.push([]);
+            }
+
             for(var i = 0; i < 16; i++) {
                 var values = [];
 
@@ -227,12 +231,12 @@
 
                 var combination = findCombination(result.allSimpleExprs, values);
 
-                result.bigExprs.forEach(function(bigExpr) {
+                result.bigExprs.forEach(function(bigExpr, i) {
                     var evalResult = evaluateExpr(bigExpr, result.allSimpleExprs, values);
 
                     newRow += "<td class='combo'>" + (evalResult ? 1 : 0) + "</td>";
 
-                    evalResults.push(evalResult);
+                    evalResults[i].push(evalResult);
                 });
 
                 newRow += ("<td class='combo'></td>").repeat(3 - result.bigExprs.length);
@@ -243,7 +247,17 @@
                 if(combination === null) {
                     $solverMCDC.find('tr.generated').last().find('td.combo').css('background-color', 'pink')
                 }
+
+                evalCombinations.push(combination);
             }
+
+            var selectedCombinations = getCoveringSetMCDC(evalCombinations, evalResults);
+
+            $solverMCDC.find(".combination_display").each(function(i, cell) {
+                if(i < selectedCombinations.length) {
+                    $(cell).text("(" + selectedCombinations[i].join(", ") + ")");
+                }
+            });
 
             $results_section.show();
         };

@@ -65,6 +65,10 @@ table.results td.equally_narrow {
     width: 10%;
 }
 
+table.results td.combination_display {
+    font-style: italic;
+}
+
 table.results tr.heading td {
     text-align: center;
 }
