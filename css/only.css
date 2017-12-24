@@ -6,14 +6,26 @@ body > h2 {
     text-align: center;
 }
 
-div.solver_outer {
+body > div {
     width: 60%;
     min-width: 550px;
-    margin: 50px auto 0;
+    margin: 0 auto;
 
     padding: 20px;
+}
+
+div.solver_outer {
+    margin-top: 50px;
 
     background: #eeeeee;
+}
+
+div.footer {
+    margin-bottom: 20px;
+
+    color: #aaaaaa;
+
+    text-align: center;
 }
 
 span.small {
@@ -59,4 +71,9 @@ table.results tr.heading td {
 
 .info {
     color: red;
+}
+
+.notice {
+    color: gray;
+    font-style: italic;
 }
