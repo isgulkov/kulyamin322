@@ -21,11 +21,10 @@ div.solver_outer {
 }
 
 div.footer {
+    width: 40%;
     margin-bottom: 20px;
 
     color: #aaaaaa;
-
-    text-align: center;
 }
 
 span.small {
