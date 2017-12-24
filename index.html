@@ -133,7 +133,7 @@
     </div>
 
     <script src="js/parse_logic.js"></script>
-    <script src="js/set_of_integers.js"></script>
+    <script src="js/numeric_constraints.js"></script>
     <script src="js/analyze_logic.js"></script>
     <script>
         /*
@@ -209,35 +209,36 @@
                 $expression_display_cells.eq(i).html(printExpr(expr));
             });
 
-            var evalValues = [];
+            var evalCombinations = [];
             var evalResults = [];
 
             for(var i = 0; i < 16; i++) {
-                var values = {};
+                var values = [];
 
                 var iTmp = i;
 
-                var newRow = "<tr class=\"generated row_" + i +"\"><td>" + (i + 1) +"</td>";
+                var newRow = "<tr class='generated row_" + i +"'><td>" + (i + 1) +"</td>";
 
                 result.allSimpleExprs.forEach(function(simpleExpr) {
-                    values[simpleExpr] = (iTmp & 8) !== 0;
+                    values.push((iTmp & 8) !== 0);
 
                     newRow += "<td>" + ((iTmp & 8) / 8) + "</td>";
 
                     iTmp <<= 1;
                 });
 
-                evalValues.push(values);
+                console.log(i, findCombination(result.allSimpleExprs, values));
 
                 result.bigExprs.forEach(function(bigExpr) {
-                    var evalResult = evaluateExpr(bigExpr, values);
+                    var evalResult = evaluateExpr(bigExpr, result.allSimpleExprs, values);
 
                     newRow += "<td>" + (evalResult ? 1 : 0) + "</td>";
 
                     evalResults.push(evalResult);
                 });
 
-                newRow += "<td></td><td></td></tr>";
+                newRow += ("<td></td>").repeat(3 - result.bigExprs.length);
+                newRow += "<td class='combination_display'></td></tr>";
 
                 $(newRow).appendTo($solverMCDC.find('table.results'));
             }

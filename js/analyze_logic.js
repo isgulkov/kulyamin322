@@ -10,19 +10,15 @@ var areSimpleExprsEqual = function(one, another) { // TODO: identical
 
     if(one.op === another.op) {
         if(one.left.value === another.left.value && one.right.value === another.right.value) {
-            // console.log(one, another);
             return true;
         }
         else if(one.op === '==') {
-            // console.log(one, another);
             return one.left.value === another.right.value && one.right.value === another.left.value
         }
 
-        // console.log(one, another);
         return false;
     }
     else if(one.op === oppositeOp(another.op)) {
-        // console.log(one, another);
         return one.left.value === another.right.value && one.right.value === another.left.value;
     }
 };
@@ -56,17 +52,19 @@ var printExpr = function(expr) {
     }
 };
 
-var evaluateExpr = function(expression, values) {
+var evaluateExpr = function(expression, simpleExpressions, values) {
     if(expression.kind === 'compare') {
-        return values[expression];
+        return values[simpleExpressions.findIndex(function(ex) {
+            return areSimpleExprsEqual(expression, ex);
+        })];
     }
     else if(expression.kind === 'logic') {
         if(expression.hasOwnProperty('arg')) {
-            return !evaluateExpr(expression.arg, values);
+            return !evaluateExpr(expression.arg, simpleExpressions, values);
         }
 
-        var leftVal = evaluateExpr(expression.left, values);
-        var rightVal = evaluateExpr(expression.right, values);
+        var leftVal = evaluateExpr(expression.left, simpleExpressions, values);
+        var rightVal = evaluateExpr(expression.right, simpleExpressions, values);
 
         if(expression.op === 'and') {
             return leftVal && rightVal;
@@ -189,4 +187,43 @@ var extractSimpleExpressions = function() {
         allSimpleExprs: allSimpleExprs,
         bigExprs: bigExprs
     };
+};
+
+var findCombination = function(simpleExpressions, values) {
+    var constraints = {};
+
+    simpleExpressions.forEach(function(ex, i) {
+        putIdOnTheLeft(ex);
+
+        if(constraints[ex.left.value] === undefined) {
+            constraints[ex.left.value] = SetOfNumbers.all();
+        }
+
+        var expressionSet = SetOfNumbers.fromCompare(ex.op, ex.right.value);
+
+        // console.log(printExpr(ex), expressionSet.toString());
+
+        constraints[ex.left.value] = constraints[ex.left.value].intersect(
+            values[i] ? expressionSet : SetOfNumbers.all().subtract(expressionSet)
+        );
+
+        // console.log((values[i] ? expressionSet : SetOfNumbers.all().subtract(expressionSet)).toString());
+    });
+
+    Object.keys(constraints).sort().forEach(function(v) {
+        // console.log(v, constraints[v].toString());
+    });
+
+    var combination = [];
+
+    Object.keys(constraints).sort().forEach(function(v) {
+        combination.push(constraints[v].pickAny());
+    });
+
+    if(combination.indexOf(null) !== -1) {
+        return null;
+    }
+    else {
+        return combination;
+    }
 };
