@@ -256,6 +256,10 @@ var getCoveringSetMCDC = function(combinations, exprValues) {
                     continue;
                 }
 
+                if(combinations[iComb] === null || combinations[iOtherComb] === null) {
+                    continue;
+                }
+
                 if(exprValues[iExpr][iComb] !== exprValues[iExpr][iOtherComb]) {
                     ixSelected[iComb] = true;
                     ixSelected[iOtherComb] = true;
