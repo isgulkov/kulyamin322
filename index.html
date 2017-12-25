@@ -32,7 +32,7 @@
 
             </table>
 
-            <p class="notice">Примечание: солвер находится в разработке, скорее всего выводит хуйню.</p>
+            <p class="notice"></p>
 
             <p>4. Выкрикните на всю аудиторию «ПИ — шарага». Чем громче выкрикнете, тем больше ПИ — шарага.</p>
         </div>
@@ -48,13 +48,13 @@
 
                 $solverCombGr.find('tr.generated').remove();
 
-//                var $error_msg = $solverCombGr.find('.error_msg');
+                var $error_msg = $solverCombGr.find('.error_msg');
 
                 var prod = parseProduction($('#prod').val());
 
-                var setCoveringAllPairs = findVariantVectorsThatCoverAllPairs(prod);
+                var coverResult = findVariantVectorsThatCoverAllPairs(prod);
 
-                setCoveringAllPairs.forEach(function(vId, i) {
+                coverResult.coveringSet.forEach(function(vId, i) {
                     var newRow = "<tr class=\"generated\"><td class=\"leftmost\">" + (i + 1) + "</td>";
 
                     vId.forEach(function(subV) {
@@ -65,6 +65,11 @@
 
                     $solverCombGr.find('table.results').append($(newRow));
                 });
+
+                if(coverResult.numUncoveredPairs !== 0) {
+                    $error_msg.text("Из " + coverResult.numTotalPairs + " пар" + (coverResult.numTotalPairs % 10 === 1 ? "ы" : "")
+                        + " остались непокрытыми: " + coverResult.numUncoveredPairs);
+                }
 
                 $results_section.show();
             };

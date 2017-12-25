@@ -214,13 +214,17 @@ var findVariantVectorsThatCoverAllPairs = function(prod) {
 
     var uncoveredPairs = getAllPairs(explodedProd);
 
+    var numTotalPairs = uncoveredPairs.length;
+
     getActualPairs(coveringSetOfWords).forEach(function(pair) {
         uncoveredPairs.splice(uncoveredPairs.indexOf(pair), 1);
     });
 
-    console.log("Left uncovered:", uncoveredPairs);
-
-    return coveringSetOfWords;
+    return {
+        coveringSet: coveringSetOfWords,
+        numTotalPairs: numTotalPairs,
+        numUncoveredPairs: uncoveredPairs.length
+    };
 };
 
 var indexMaxByKey = function(arr, f) {
