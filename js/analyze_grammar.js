@@ -103,11 +103,90 @@ var sortInOrderOfNumVarsDesc = function(explodedProd) {
     };
 };
 
-var produceVariantNumVectorsIPO = function(numsOfVariants) {
-    return [
-        numsOfVariants.map(function(v) { return 0; }),
-        numsOfVariants.map(function(v) { return v - 1; })
-    ]; // TODO: actually implement the IPO algorithm
+var getPairwiseSetForTwo = function(nVars, mVars) {
+    var pairwiseSet = [];
+
+    for(var i = 0; i < nVars; i++) {
+        for(var j = 0; j < mVars; j++) {
+            pairwiseSet.push([i, j]);
+        }
+    }
+
+    return pairwiseSet;
+};
+
+var getAllPairsBetweenManyAndOne = function(manyNs, oneN) {
+    var allPairs = {};
+
+    manyNs.forEach(function(particularN, iP) {
+        for(var i = 0; i < particularN; i++) {
+            for(var j = 0; j < oneN; j++) {
+                allPairs["" + iP + "-" + i + "/" + j] = true;
+            }
+        }
+    });
+
+    return allPairs;
+};
+
+var getPairsWithParticularTest = function(v, newX) {
+    var pairs = {};
+
+    v.forEach(function(x, i) {
+        pairs["" + i + "-" + x + "/" + newX] = true;
+    });
+
+    return pairs;
+};
+
+var producePairwiseSetIPO = function(numsOfVariants) {
+    if(numsOfVariants.length < 2) {
+        return []; // no pairs between just one parameter LMAO
+    }
+
+    // initialize with a pairwise set for the first two parameters, which is just the set of all pairs
+
+    var pairwiseSet = getPairwiseSetForTwo(numsOfVariants[0], numsOfVariants[1]);
+
+    for(var i = 2; i < numsOfVariants.length; i++) {
+        var uncoveredPairs = getAllPairsBetweenManyAndOne(numsOfVariants.concat([]).splice(0, i), numsOfVariants[i]);
+
+        // horizontal growth
+
+        for(var iTest = 0; iTest < pairwiseSet.length; iTest++) {
+            var bestX = 0; // Replace with "don't care"?
+            var bestXPairs = {};
+            var bestNumNewPairs = 0;
+
+            for(var candX = 0; candX < numsOfVariants[i]; candX++) {
+                var currentPairs = getPairsWithParticularTest(pairwiseSet[iTest], candX);
+
+                var numNewPairs = 0;
+
+                Object.keys(currentPairs).forEach(function(pair) {
+                    if(uncoveredPairs[pair] !== undefined) {
+                        numNewPairs += 1;
+                    }
+                });
+
+                if(numNewPairs > bestNumNewPairs) {
+                    bestX = candX;
+                    bestNumNewPairs = numNewPairs;
+                    bestXPairs = currentPairs;
+                }
+            }
+
+            pairwiseSet[iTest].push(bestX);
+
+            Object.keys(bestXPairs).forEach(function(pair) {
+                delete uncoveredPairs[pair];
+            });
+        }
+
+        // TODO: vertical growth?
+    }
+
+    return pairwiseSet;
 };
 
 var findVariantVectorsThatCoverAllPairs = function(prod) {
@@ -115,9 +194,7 @@ var findVariantVectorsThatCoverAllPairs = function(prod) {
 
     var sortResult = sortInOrderOfNumVarsDesc(explodedProd);
 
-    console.log(sortResult.sortedProd);
-
-    var numVectors = produceVariantNumVectorsIPO(sortResult.sortedProd.map(function(vars) { return vars.length; }));
+    var numVectors = producePairwiseSetIPO(sortResult.sortedProd.map(function(vars) { return vars.length; }));
 
     numVectors = numVectors.map(function(v) {
         var newV = v.map(function() { return 0; });
@@ -129,11 +206,21 @@ var findVariantVectorsThatCoverAllPairs = function(prod) {
         return newV;
     });
 
-    return numVectors.map(function(v) {
+    var coveringSetOfWords = numVectors.map(function(v) {
         return v.map(function(x, i) {
             return explodedProd[i][x];
         })
     });
+
+    var uncoveredPairs = getAllPairs(explodedProd);
+
+    getActualPairs(coveringSetOfWords).forEach(function(pair) {
+        uncoveredPairs.splice(uncoveredPairs.indexOf(pair), 1);
+    });
+
+    console.log("Left uncovered:", uncoveredPairs);
+
+    return coveringSetOfWords;
 };
 
 var indexMaxByKey = function(arr, f) {
@@ -153,7 +240,7 @@ var indexMaxByKey = function(arr, f) {
 };
 
 var countNewPairs = function(knownPairs, variantV) {
-    var variantPairs = getPairs(variantV);
+    var variantPairs = getAllPairs(variantV);
 
     var numNewPairs = 0;
 
@@ -178,12 +265,30 @@ var countTotalPairs = function(prod) {
     return result
 };
 
-var getPairs = function(variantV) {
+var getActualPairs = function(supposedPairwiseSet) {
+    var pairs = {};
+
+    for(var iTest = 0; iTest < supposedPairwiseSet.length; iTest++) {
+        for(var i = 0; i < supposedPairwiseSet[iTest].length; i++) {
+            for(var j = i + 1; j < supposedPairwiseSet[iTest].length; j++) {
+                pairs["" + i + supposedPairwiseSet[iTest][i] + "/" + j + supposedPairwiseSet[iTest][j]] = true;
+            }
+        }
+    }
+
+    return Object.keys(pairs);
+};
+
+var getAllPairs = function(variantV) {
     var pairs = [];
 
     for(var i = 0; i < variantV.length; i++) {
         for(var j = i + 1; j < variantV.length; j++) {
-            pairs.push("" + i + variantV[i] + "/" + j + variantV[j]);
+            variantV[i].forEach(function(s) {
+                variantV[j].forEach(function(t) {
+                    pairs.push("" + i + s + "/" + j + t);
+                });
+            });
         }
     }
 
