@@ -123,9 +123,7 @@
                 </tr>
             </table>
 
-            <p class="notice">
-                Примечание: в правом столбце значения параметров записаны в алфавитном порядке имен этих параметров.
-            </p>
+            <div class="notice"></div>
 
             <p>4. Если ты телочка, позвони мне ( ͡° ͜ʖ ͡°)</p>
         </div>
@@ -256,10 +254,12 @@
                 var coveringSet = getCoveringSetMCDC(evalCombinations, evalResults);
 
                 if(coveringSet.pairsNotCovered.length !== 0) {
-                    $error_msg.html("<p>Че-то остались непокрытыми следующие пары:</p>"
+                    $solverMCDC.find('div.notice').html("<p>Остались непокрытыми следующие пары:</p>"
                         + "<ul>" + coveringSet.pairsNotCovered.map(function(p) {
-                            return "<li>Условие " + printExpr(result.allSimpleExprs[p.iVar]) + ", ветвление " + (p.iExpr + 1) + "</li>";
-                        }).join("\n") + "</ul>")
+                            return "<li>условие " + printExpr(result.allSimpleExprs[p.iVar])
+                                + ", ветвление " + ["I", "II", "III"][p.iExpr] + ",</li>";
+                        }).join("\n") + "</ul>"
+                        + "<p>и это нормально, так как эти условия не влияют на эти ветвления.</p>")
                 }
 
                 $solverMCDC.find(".combination_marking").each(function(i, cell) {
