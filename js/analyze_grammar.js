@@ -67,30 +67,73 @@ var getLocalVariants = function(subProd) {
     }
 };
 
-var findVariantVectorsThatCoverAllPairs = function(prod)
-{
-    var allVariantVs = getAllVariantVectors(prod);
+var getExplodedProd = function(prod) {
+    return prod.map(getLocalVariants);
+};
 
-    var selectedVarVs = [];
+var sortInOrderOfNumVarsDesc = function(explodedProd) {
+    var sortedProd = [];
+    var oldLocations = {};
 
-    var numTotalPairs = countTotalPairs(prod);
-    var knownPairs = {};
+    explodedProd = explodedProd.concat([]);
 
-    while(Object.keys(knownPairs).length < numTotalPairs) {
-        var iBest = indexMaxByKey(allVariantVs, function(varId) {
-            return countNewPairs(knownPairs, varId);
-        });
+    for(var i = 0; i < explodedProd.length; i++) {
+        var iBiggest = null;
+        var nBiggest = 0;
 
-        getPairs(allVariantVs[iBest]).forEach(function(p) {
-            knownPairs[p] = true;
-        });
+        for(var j = 0; j < explodedProd.length; j++) {
+            if(explodedProd[j] === null) {
+                continue;
+            }
 
-        selectedVarVs.push(allVariantVs[iBest]);
+            if(explodedProd[j].length > nBiggest) {
+                nBiggest = explodedProd[j].length;
+                iBiggest = j;
+            }
+        }
 
-        allVariantVs.splice(iBest, 1);
+        oldLocations[i] = iBiggest;
+        sortedProd.push(explodedProd[iBiggest]);
+        explodedProd[iBiggest] = null;
     }
 
-    return selectedVarVs;
+    return {
+        sortedProd: sortedProd,
+        oldLocations: oldLocations
+    };
+};
+
+var produceVariantNumVectorsIPO = function(numsOfVariants) {
+    return [
+        numsOfVariants.map(function(v) { return 0; }),
+        numsOfVariants.map(function(v) { return v - 1; })
+    ]; // TODO: actually implement the IPO algorithm
+};
+
+var findVariantVectorsThatCoverAllPairs = function(prod) {
+    var explodedProd = getExplodedProd(prod);
+
+    var sortResult = sortInOrderOfNumVarsDesc(explodedProd);
+
+    console.log(sortResult.sortedProd);
+
+    var numVectors = produceVariantNumVectorsIPO(sortResult.sortedProd.map(function(vars) { return vars.length; }));
+
+    numVectors = numVectors.map(function(v) {
+        var newV = v.map(function() { return 0; });
+
+        v.forEach(function(x, i) {
+            newV[sortResult.oldLocations[i]] = x;
+        });
+
+        return newV;
+    });
+
+    return numVectors.map(function(v) {
+        return v.map(function(x, i) {
+            return explodedProd[i][x];
+        })
+    });
 };
 
 var indexMaxByKey = function(arr, f) {
