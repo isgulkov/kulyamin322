@@ -139,54 +139,92 @@ var getPairsWithParticularTest = function(v, newX) {
     return pairs;
 };
 
+function getFirstPerm(nVars, mVars) {
+    var permutation = [];
+
+    for(var i = 0; i < nVars; i++) {
+        for(var j = 0; j < mVars; j++) {
+            permutation.push(i);
+        }
+    }
+
+    return permutation;
+}
+
 var producePairwiseSetIPO = function(numsOfVariants) {
     if(numsOfVariants.length < 2) {
         return []; // no pairs between just one parameter LMAO
     }
 
-    // initialize with a pairwise set for the first two parameters, which is just the set of all pairs
+    var firstPerm = getFirstPerm(numsOfVariants[0], numsOfVariants[1]);
 
-    var pairwiseSet = getPairwiseSetForTwo(numsOfVariants[0], numsOfVariants[1]);
+    var initialPermutations = numsOfVariants.map(function() {
+        return firstPerm.map(function(x) { return -1; });
+    });
 
-    for(var i = 2; i < numsOfVariants.length; i++) {
-        var uncoveredPairs = getAllPairsBetweenManyAndOne(numsOfVariants.concat([]).splice(0, i), numsOfVariants[i]);
+    initialPermutations[0] = firstPerm;
 
-        // horizontal growth
+    var state = {
+        numTests: firstPerm.length,
+        permutations: initialPermutations,
+        incorporated: initialPermutations.map(function(perm) { return perm.map(function(x) { return x !== -1; }) }),
 
-        for(var iTest = 0; iTest < pairwiseSet.length; iTest++) {
-            var bestX = 0; // Replace with "don't care"?
-            var bestXPairs = {};
-            var bestNumNewPairs = 0;
+        tryCoverAllPairsBetweenParameters: function(iOne, iAnother) {
+            return true; // TODO: implement
+        },
 
-            for(var candX = 0; candX < numsOfVariants[i]; candX++) {
-                var currentPairs = getPairsWithParticularTest(pairwiseSet[iTest], candX);
-
-                var numNewPairs = 0;
-
-                Object.keys(currentPairs).forEach(function(pair) {
-                    if(uncoveredPairs[pair] !== undefined) {
-                        numNewPairs += 1;
-                    }
-                });
-
-                if(numNewPairs > bestNumNewPairs) {
-                    bestX = candX;
-                    bestNumNewPairs = numNewPairs;
-                    bestXPairs = currentPairs;
+        restoreIncorpForParam: function(iParam) {
+            this.incorporated.forEach(function(incorp, iTest) {
+                if(!incorp) {
+                    this.permutations[iParam][iTest] = -1;
                 }
+            });
+        },
+
+        saveAllIncorps: function() {
+            var state = this;
+
+            this.permutations.forEach(function(perm, iParam) {
+                perm.forEach(function(x, iTest) {
+                    state.incorporated[iParam][iTest] = (x !== -1);
+                });
+            });
+        },
+
+        getTests: function() {
+            var tests = [];
+
+            for(var iTest = 0; iTest < this.numTests; iTest++) {
+                tests.push(
+                    this.permutations.map(function(perm) {
+                        var x = perm[iTest];
+
+                        return x !== -1 ? x : 0;
+                    })
+                );
             }
 
-            pairwiseSet[iTest].push(bestX);
+            return tests;
+        }
+    };
 
-            Object.keys(bestXPairs).forEach(function(pair) {
-                delete uncoveredPairs[pair];
-            });
+    for(var iCurrent = 1; iCurrent < numsOfVariants.length; iCurrent++) {
+        for(var iPrev = 0; iPrev < iCurrent; iPrev++) {
+            if(!state.tryCoverAllPairsBetweenParameters(iPrev, iCurrent)) {
+                for(var i = 0; i <= iPrev; i++) {
+                    state.restoreIncorpForParam(i);
+                }
+
+                // TODO: vertical growth
+
+                iPrev = -1;
+            }
         }
 
-        // TODO: vertical growth?
+        state.saveAllIncorps();
     }
 
-    return pairwiseSet;
+    return state.getTests();
 };
 
 var findVariantVectorsThatCoverAllPairs = function(prod) {
