@@ -180,6 +180,10 @@ function subtractSets(one, another) {
 }
 
 function nextPermutation(perm, nValues) {
+    if(perm.length === 0) {
+        return false;
+    }
+
     perm[0] += 1;
 
     for(var i = 0; i < perm.length; i++) {
@@ -206,6 +210,20 @@ function producePairwiseSetBruteforceIPO(numsOfVariants) {
 
     var firstPerm = getFirstPerm(numsOfVariants[0], numsOfVariants[1]);
 
+    for(var nTests = firstPerm.length; ; nTests++) {
+        var permExtension = Array(nTests - firstPerm.length).fill(0);
+
+        do {
+            var tests = producePairwiseSetBruteforceWithInit(numsOfVariants, firstPerm.concat(permExtension));
+
+            if(tests !== null) {
+                return tests;
+            }
+        } while(nextPermutation(permExtension));
+    }
+}
+
+function producePairwiseSetBruteforceWithInit(numsOfVariants, firstPerm) {
     var state = {
         numTests: firstPerm.length,
         numsOfVariants: numsOfVariants,
@@ -257,13 +275,13 @@ function producePairwiseSetBruteforceIPO(numsOfVariants) {
     };
 
     for(var iCurrent = 1; iCurrent < numsOfVariants.length; iCurrent++) {
-        var candidatePerm = Array(state.numTests).fill(null).map(function() { return 0; });
+        var candidatePerm = Array(state.numTests).fill(0);
 
         while(!state.candidateSuitsAll(candidatePerm, numsOfVariants[iCurrent])) {
             console.log(JSON.stringify(candidatePerm));
 
             if(!nextPermutation(candidatePerm, numsOfVariants[iCurrent])) {
-                return state.getTests();
+                return null;
             }
         }
 
@@ -271,7 +289,7 @@ function producePairwiseSetBruteforceIPO(numsOfVariants) {
     }
 
     return state.getTests();
-};
+}
 
 var findVariantVectorsThatCoverAllPairs = function(prod) {
     var explodedProd = getExplodedProd(prod);
