@@ -70,6 +70,9 @@
                     $error_msg.text("Из " + coverResult.numTotalPairs + " пар" + (coverResult.numTotalPairs % 10 === 1 ? "ы" : "")
                         + " остались непокрытыми: " + coverResult.numUncoveredPairs);
                 }
+                else {
+                    $solverCombGr.find('.notice').text("Покрыты все пары (" + coverResult.numTotalPairs + ")");
+                }
 
                 $results_section.show();
             };

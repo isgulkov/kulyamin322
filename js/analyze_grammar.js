@@ -151,44 +151,92 @@ function getFirstPerm(nVars, mVars) {
     return permutation;
 }
 
-var producePairwiseSetIPO = function(numsOfVariants) {
+function reprPair(x, y) {
+    return x + "/" + y;
+}
+
+function getPairsBetweenParams(nVars, mVars) {
+    var pairs = {};
+
+    for(var i = 0; i < nVars; i++) {
+        for(var j = 0; j < mVars; j++) {
+            pairs[reprPair(i, j)] = true;
+        }
+    }
+
+    return pairs;
+}
+
+function subtractSets(one, another) {
+    var newSet = {};
+
+    one.forEach(function(x) {
+        if(another[x] === undefined) {
+            newSet[x] = true;
+        }
+    });
+
+    return newSet;
+}
+
+function nextPermutation(perm, nValues) {
+    perm[0] += 1;
+
+    for(var i = 0; i < perm.length; i++) {
+        if(perm[i] === nValues) {
+            if(i + 1 === perm.length) {
+                return false;
+            }
+
+            perm[i] = 0;
+            perm[i + 1] += 1;
+        }
+        else {
+            break;
+        }
+    }
+
+    return true;
+}
+
+function producePairwiseSetBruteforceIPO(numsOfVariants) {
     if(numsOfVariants.length < 2) {
         return []; // no pairs between just one parameter LMAO
     }
 
     var firstPerm = getFirstPerm(numsOfVariants[0], numsOfVariants[1]);
 
-    var initialPermutations = numsOfVariants.map(function() {
-        return firstPerm.map(function(x) { return -1; });
-    });
-
-    initialPermutations[0] = firstPerm;
-
     var state = {
         numTests: firstPerm.length,
-        permutations: initialPermutations,
-        incorporated: initialPermutations.map(function(perm) { return perm.map(function(x) { return x !== -1; }) }),
+        numsOfVariants: numsOfVariants,
+        permutations: [firstPerm],
 
-        tryCoverAllPairsBetweenParameters: function(iOne, iAnother) {
-            return true; // TODO: implement
-        },
-
-        restoreIncorpForParam: function(iParam) {
-            this.incorporated.forEach(function(incorp, iTest) {
-                if(!incorp) {
-                    this.permutations[iParam][iTest] = -1;
+        candidateSuitsAll: function(candidate) {
+            for(var iPerm = 0; iPerm < this.permutations.length; iPerm++) {
+                if(!this.candidateSuitsPerm(iPerm, candidate)) {
+                    return false;
                 }
-            });
+            }
+
+            return true;
         },
 
-        saveAllIncorps: function() {
-            var state = this;
+        candidateSuitsPerm: function(iPerm, candidate) {
+            var uncoveredPairs = getPairsBetweenParams(this.numsOfVariants[iPerm], this.numsOfVariants[this.permutations.length]);
 
-            this.permutations.forEach(function(perm, iParam) {
-                perm.forEach(function(x, iTest) {
-                    state.incorporated[iParam][iTest] = (x !== -1);
-                });
-            });
+            for(var iTest = 0; iTest < this.numTests; iTest++) {
+                var newPair = reprPair(this.permutations[iPerm][iTest], candidate[iTest]);
+
+                if(uncoveredPairs[newPair] !== undefined) {
+                    delete uncoveredPairs[newPair];
+                }
+            }
+
+            return Object.keys(uncoveredPairs).length === 0;
+        },
+
+        addPermutation: function(perm) {
+            this.permutations.push(perm);
         },
 
         getTests: function() {
@@ -209,19 +257,17 @@ var producePairwiseSetIPO = function(numsOfVariants) {
     };
 
     for(var iCurrent = 1; iCurrent < numsOfVariants.length; iCurrent++) {
-        for(var iPrev = 0; iPrev < iCurrent; iPrev++) {
-            if(!state.tryCoverAllPairsBetweenParameters(iPrev, iCurrent)) {
-                for(var i = 0; i <= iPrev; i++) {
-                    state.restoreIncorpForParam(i);
-                }
+        var candidatePerm = Array(state.numTests).fill(null).map(function() { return 0; });
 
-                // TODO: vertical growth
+        while(!state.candidateSuitsAll(candidatePerm, numsOfVariants[iCurrent])) {
+            console.log(JSON.stringify(candidatePerm));
 
-                iPrev = -1;
+            if(!nextPermutation(candidatePerm, numsOfVariants[iCurrent])) {
+                return state.getTests();
             }
         }
 
-        state.saveAllIncorps();
+        state.addPermutation(candidatePerm);
     }
 
     return state.getTests();
@@ -232,7 +278,7 @@ var findVariantVectorsThatCoverAllPairs = function(prod) {
 
     var sortResult = sortInOrderOfNumVarsDesc(explodedProd);
 
-    var numVectors = producePairwiseSetIPO(sortResult.sortedProd.map(function(vars) { return vars.length; }));
+    var numVectors = producePairwiseSetBruteforceIPO(sortResult.sortedProd.map(function(vars) { return vars.length; }));
 
     numVectors = numVectors.map(function(v) {
         var newV = v.map(function() { return 0; });
@@ -250,9 +296,9 @@ var findVariantVectorsThatCoverAllPairs = function(prod) {
         })
     });
 
-    var uncoveredPairs = getAllPairs(explodedProd);
+    var uncoveredPairs = getAllPairsInProd(explodedProd);
 
-    var numTotalPairs = uncoveredPairs.length;
+    var numTotalPairs = Object.keys(uncoveredPairs).length;
 
     getActualPairs(coveringSetOfWords).forEach(function(pair) {
         uncoveredPairs.splice(uncoveredPairs.indexOf(pair), 1);
@@ -261,7 +307,7 @@ var findVariantVectorsThatCoverAllPairs = function(prod) {
     return {
         coveringSet: coveringSetOfWords,
         numTotalPairs: numTotalPairs,
-        numUncoveredPairs: uncoveredPairs.length
+        numUncoveredPairs: Object.keys(uncoveredPairs).length
     };
 };
 
@@ -282,7 +328,7 @@ var indexMaxByKey = function(arr, f) {
 };
 
 var countNewPairs = function(knownPairs, variantV) {
-    var variantPairs = getAllPairs(variantV);
+    var variantPairs = getPairsBetweenParams(variantV);
 
     var numNewPairs = 0;
 
@@ -321,7 +367,7 @@ var getActualPairs = function(supposedPairwiseSet) {
     return Object.keys(pairs);
 };
 
-var getAllPairs = function(variantV) {
+var getAllPairsInProd = function(variantV) {
     var pairs = [];
 
     for(var i = 0; i < variantV.length; i++) {
